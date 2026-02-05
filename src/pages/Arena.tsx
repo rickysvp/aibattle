@@ -177,7 +177,10 @@ const Arena: React.FC = () => {
           syncParticipantsToStore(currentParticipants);
           syncSelectedSlotsToStore([...timerStateRef.current.selectedSlots, i]);
         }
-        
+
+        // 等待坑位填满后再等待一下，确保动画完成
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         // ===== 3. 倒计时阶段 (3秒) =====
         syncPhaseToStore('countdown');
         syncCountdownToStore(3);

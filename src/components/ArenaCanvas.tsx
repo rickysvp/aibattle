@@ -155,7 +155,6 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
             type: 'kill',
             attacker,
             defender: target,
-            damage,
             message: `${attacker.name} 击杀了 ${target.name}！`,
             isHighlight: true,
           });
@@ -165,7 +164,6 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
             type: 'attack',
             attacker,
             defender: target,
-            damage,
             message: `${attacker.name} 掠夺了 ${target.name} ${lootAmount} $MON`,
           });
         }
