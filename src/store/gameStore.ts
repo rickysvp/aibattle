@@ -37,7 +37,9 @@ interface GameStore {
 
   // 系统全局轮次计数（所有并行竞技场总和）
   totalSystemRounds: number;
+  lastSystemRoundUpdate: number;
   incrementSystemRound: () => void;
+  getTotalSystemRounds: () => number;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -269,10 +271,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // 系统全局轮次计数（所有并行竞技场总和）
   totalSystemRounds: 12580, // 初始值，表示系统已经运行了很多轮
+  lastSystemRoundUpdate: Date.now(),
 
   incrementSystemRound: () => {
     set((state) => ({
       totalSystemRounds: state.totalSystemRounds + 1,
+      lastSystemRoundUpdate: Date.now(),
     }));
+  },
+
+  getTotalSystemRounds: () => {
+    const state = get();
+    const now = Date.now();
+    const elapsed = now - state.lastSystemRoundUpdate;
+    // 每2秒增加1轮，模拟多个竞技场并行运行
+    // 假设有50个并行竞技场，每个竞技场每10秒完成一轮
+    // 则每2秒增加 50/5 = 10 轮
+    const additionalRounds = Math.floor(elapsed / 200) * 10;
+    return state.totalSystemRounds + additionalRounds;
   },
 }));

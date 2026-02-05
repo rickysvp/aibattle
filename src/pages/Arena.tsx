@@ -280,8 +280,23 @@ const Arena: React.FC = () => {
   const currentParticipants = timerStateRef.current.participants;
   const currentSelectedSlots = timerStateRef.current.selectedSlots;
 
-  // 使用系统全局轮次计数
-  const totalSystemRounds = useGameStore(state => state.totalSystemRounds);
+  // 使用系统全局轮次计数 - 动态计算
+  const [displaySystemRounds, setDisplaySystemRounds] = useState(12580);
+
+  useEffect(() => {
+    const updateRounds = () => {
+      const store = useGameStore.getState();
+      const now = Date.now();
+      const elapsed = now - store.lastSystemRoundUpdate;
+      // 每200ms增加10轮，模拟50个并行竞技场
+      const additionalRounds = Math.floor(elapsed / 200) * 10;
+      setDisplaySystemRounds(store.totalSystemRounds + additionalRounds);
+    };
+
+    updateRounds();
+    const interval = setInterval(updateRounds, 200);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-void pt-24 pb-24">
@@ -299,7 +314,7 @@ const Arena: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-white">AIrena</h2>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-mono">
-                      Round {totalSystemRounds.toLocaleString()}
+                      Round {displaySystemRounds.toLocaleString()}
                     </span>
                   </div>
                 </div>
