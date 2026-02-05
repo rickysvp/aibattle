@@ -8,7 +8,7 @@ import { Swords, Users, Trophy, Zap, TrendingUp, Plus, Wallet, Sparkles, X } fro
 import { useNavigate } from 'react-router-dom';
 
 // 战斗阶段类型 - 与 store 中的 RoundPhase 保持一致
-type BattlePhase = 'waiting' | 'selecting' | 'countdown' | 'fighting' | 'settlement';
+type BattlePhase = 'waiting' | 'selecting' | 'loading' | 'countdown' | 'fighting' | 'settlement';
 
 // 计时器状态
 interface TimerState {
@@ -179,16 +179,17 @@ const Arena: React.FC = () => {
         }
 
         // 等待坑位填满后再等待一下，确保动画完成
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-        // ===== 3. 倒计时阶段 (3秒) =====
-        syncPhaseToStore('countdown');
-        syncCountdownToStore(3);
-        
-        for (let i = 3; i > 0; i--) {
+        // ===== 3. 进入战场加载阶段 (1秒进度条) =====
+        syncPhaseToStore('loading');
+        syncCountdownToStore(100); // 用 countdown 表示进度百分比
+
+        // 100ms 更新一次，1秒内从 0% 到 100%
+        for (let progress = 0; progress <= 100; progress += 10) {
           if (!isActive) return;
-          syncCountdownToStore(i);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          syncCountdownToStore(progress);
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         // ===== 4. 战斗阶段 (10秒) =====

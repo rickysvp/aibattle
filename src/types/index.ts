@@ -31,7 +31,7 @@ export interface BattleLog {
 }
 
 // 战斗轮次状态
-export type RoundPhase = 'waiting' | 'selecting' | 'countdown' | 'fighting' | 'settlement';
+export type RoundPhase = 'waiting' | 'selecting' | 'loading' | 'countdown' | 'fighting' | 'settlement';
 
 // 竞技场状态
 export interface ArenaState {

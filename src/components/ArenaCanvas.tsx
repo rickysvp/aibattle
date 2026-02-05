@@ -512,21 +512,26 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
         </div>
       ))}
       
-      {/* 倒计时显示 - 只在 countdown 阶段显示 */}
-      {phase === 'countdown' && countdown > 0 && (
+      {/* 进度条加载 - 只在 loading 阶段显示 */}
+      {phase === 'loading' && (
         <div className="absolute inset-0 flex items-center justify-center bg-void/80 backdrop-blur-sm z-40">
-          <div className="text-center">
-            <div 
-              className="text-9xl font-bold text-gradient font-display animate-pulse"
-              style={{ 
-                textShadow: '0 0 40px rgba(139, 92, 246, 0.5), 0 0 80px rgba(139, 92, 246, 0.3)',
-                animation: 'pulse-glow 1s ease-in-out infinite'
-              }}
-            >
-              {countdown}
+          <div className="text-center w-80">
+            <div className="text-xl font-bold text-luxury-gold font-display mb-6">
+              进入战场
             </div>
-            <div className="text-lg text-white/60 mt-6 font-medium tracking-wide">
-              战斗即将开始
+            {/* 进度条容器 */}
+            <div className="w-full h-3 bg-void-panel rounded-full overflow-hidden border border-luxury-gold/30">
+              <div
+                className="h-full bg-gradient-to-r from-luxury-gold via-luxury-amber to-luxury-gold transition-all duration-100 ease-out"
+                style={{
+                  width: `${countdown}%`,
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)',
+                }}
+              />
+            </div>
+            {/* 进度百分比 */}
+            <div className="text-sm text-white/60 mt-3 font-mono">
+              {countdown}%
             </div>
           </div>
         </div>
