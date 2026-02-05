@@ -126,43 +126,55 @@ const Arena: React.FC = () => {
         }
         
         // 优先选择用户 Agents，填满剩余位置用系统 Agents
-        let participants: Agent[] = [];
-        
+        let selectedParticipants: Agent[] = [];
+
         // 先加入所有用户的 Agents（最多10个）
         const shuffledMyAgents = [...myArenaAgents].sort(() => Math.random() - 0.5);
-        participants = shuffledMyAgents.slice(0, 10);
-        
+        selectedParticipants = shuffledMyAgents.slice(0, 10);
+
         // 如果用户 Agents 不足10个，用系统 Agents 补足
-        if (participants.length < 10) {
-          const needed = 10 - participants.length;
+        if (selectedParticipants.length < 10) {
+          const needed = 10 - selectedParticipants.length;
           const shuffledSystem = [...systemArenaAgents].sort(() => Math.random() - 0.5);
-          participants = [...participants, ...shuffledSystem.slice(0, needed)];
+          selectedParticipants = [...selectedParticipants, ...shuffledSystem.slice(0, needed)];
         }
-        
-        // 再次随机打乱，但确保用户 Agents 有机会排在前面显示
-        participants = participants.sort(() => Math.random() - 0.5);
-        
+
+        // 再次随机打乱
+        selectedParticipants = selectedParticipants.sort(() => Math.random() - 0.5);
+
         // 重置参赛者状态
-        participants.forEach(p => {
+        selectedParticipants.forEach(p => {
           updateParticipant(p.id, { hp: p.maxHp, status: 'fighting' });
         });
-        
-        // 同步参赛者到 store
-        syncParticipantsToStore(participants);
-        syncSelectedSlotsToStore([]);
-        
+
         // 记录日志
         addBattleLog({
           type: 'round_start',
-          message: `第 ${timerStateRef.current.round} 轮开始！${participants.length} 名选手参战`,
+          message: `第 ${timerStateRef.current.round} 轮开始！${selectedParticipants.length} 名选手参战`,
           isHighlight: true,
         });
-        
-        // ===== 2. 逐个点亮坑位 (3秒) =====
-        const slotInterval = 3000 / participants.length;
-        for (let i = 0; i < participants.length; i++) {
+
+        // ===== 2. 逐个落座动画 (3秒) =====
+        // 先清空所有坑位
+        syncParticipantsToStore([]);
+        syncSelectedSlotsToStore([]);
+
+        const slotInterval = 3000 / selectedParticipants.length;
+
+        for (let i = 0; i < selectedParticipants.length; i++) {
           if (!isActive) return;
+
+          // 延迟创建当前坑位的参与者数组
           await new Promise(resolve => setTimeout(resolve, slotInterval));
+
+          // 构建当前已落座的参与者数组
+          const currentParticipants: Agent[] = [];
+          for (let j = 0; j <= i; j++) {
+            currentParticipants[j] = selectedParticipants[j];
+          }
+
+          // 同步到 store，触发落座动画
+          syncParticipantsToStore(currentParticipants);
           syncSelectedSlotsToStore([...timerStateRef.current.selectedSlots, i]);
         }
         

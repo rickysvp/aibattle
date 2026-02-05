@@ -231,7 +231,8 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
         const isHurt = participant && hurtAgents.has(participant.id);
         const isDead = participant && participant.hp <= 0;
         const isMyAgent = participant?.isPlayer;
-        
+        const isJustSeated = phase === 'selecting' && isSelected && participant;
+
         return (
           <div
             key={index}
@@ -247,7 +248,15 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
                 <div className="absolute inset-2 bg-luxury-gold/10 rounded-full animate-pulse" />
               </div>
             )}
-            
+
+            {/* 落座动画光环 */}
+            {isJustSeated && (
+              <div className="absolute inset-0 w-20 h-20 -translate-x-2 -translate-y-2 pointer-events-none">
+                <div className="absolute inset-0 bg-luxury-gold/40 rounded-full animate-ping" style={{ animationDuration: '0.5s' }} />
+                <div className="absolute -inset-2 border-4 border-luxury-gold/60 rounded-3xl animate-pulse" style={{ animationDuration: '0.3s' }} />
+              </div>
+            )}
+
             {/* 用户 Agent 特殊光环 */}
             {isMyAgent && !isDead && (
               <div className="absolute inset-0 w-20 h-20 -translate-x-2 -translate-y-2 pointer-events-none">
@@ -255,52 +264,58 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
                 <div className="absolute -inset-1 border-2 border-luxury-cyan/50 rounded-2xl animate-ping" style={{ animationDuration: '3s' }} />
               </div>
             )}
-            
+
             {/* 坑位底座 */}
-            <div 
+            <div
               className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                isLit 
-                  ? 'bg-luxury-gold/20 shadow-lg shadow-luxury-gold/30' 
-                  : isMyAgent 
-                    ? 'bg-luxury-cyan/20 shadow-lg shadow-luxury-cyan/30' 
+                isLit
+                  ? 'bg-luxury-gold/20 shadow-lg shadow-luxury-gold/30'
+                  : isMyAgent
+                    ? 'bg-luxury-cyan/20 shadow-lg shadow-luxury-cyan/30'
                     : 'bg-void-panel/80'
               } ${
-                participant 
-                  ? 'border-2' 
+                participant
+                  ? 'border-2'
                   : 'border border-dashed border-white/10'
               } ${
                 isDead ? 'opacity-40 grayscale' : ''
               } ${
                 isHurt ? 'animate-shake' : ''
+              } ${
+                isJustSeated ? 'animate-bounce' : ''
               }`}
-              style={{ 
+              style={{
                 borderColor: isMyAgent ? '#22d3ee' : (participant?.color || 'rgba(255,255,255,0.1)'),
-                boxShadow: participant && !isDead 
-                  ? isMyAgent 
-                    ? '0 0 30px rgba(34, 211, 238, 0.4), inset 0 0 20px rgba(34, 211, 238, 0.2)' 
-                    : `0 0 20px ${participant.color}30, inset 0 0 20px ${participant.color}10`
+                boxShadow: participant && !isDead
+                  ? isMyAgent
+                    ? '0 0 30px rgba(34, 211, 238, 0.4), inset 0 0 20px rgba(34, 211, 238, 0.2)'
+                    : isJustSeated
+                      ? '0 0 40px rgba(255, 215, 0, 0.6), inset 0 0 30px rgba(255, 215, 0, 0.3)'
+                      : `0 0 20px ${participant.color}30, inset 0 0 20px ${participant.color}10`
                   : 'none'
               }}
             >
               {participant ? (
-                <PixelAgent 
-                  agent={participant} 
-                  size={40} 
-                  showHp={phase === 'fighting' || phase === 'settlement'}
-                  isAttacking={isAttacking}
-                  isHurt={isHurt}
-                />
+                <div className={`transition-all duration-300 ${isJustSeated ? 'scale-125' : 'scale-100'}`}>
+                  <PixelAgent
+                    agent={participant}
+                    size={40}
+                    showHp={phase === 'fighting' || phase === 'settlement'}
+                    isAttacking={isAttacking}
+                    isHurt={isHurt}
+                  />
+                </div>
               ) : (
                 <span className="text-white/20 text-xl font-mono">{index + 1}</span>
               )}
-              
+
               {/* 死亡标记 */}
               {isDead && (
                 <div className="absolute inset-0 flex items-center justify-center bg-void/60 rounded-2xl">
                   <span className="text-2xl">💀</span>
                 </div>
               )}
-              
+
               {/* 我的 Agent 标记 */}
               {isMyAgent && !isDead && (
                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-luxury-cyan rounded-full flex items-center justify-center border-2 border-void">
