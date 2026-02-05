@@ -169,15 +169,6 @@ const Arena: React.FC = () => {
   return (
     <div className="min-h-screen bg-void pt-24 pb-24">
       <div className="max-w-screen-xl mx-auto px-4">
-        {/* 页面标题 - 去掉外层 div */}
-        <div className="mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-luxury-rose/20 to-luxury-purple/20 border border-luxury-rose/30 flex items-center justify-center mb-4">
-            <Swords className="w-6 h-6 text-luxury-rose" />
-          </div>
-          <h1 className="text-3xl font-bold text-white font-display mb-2">竞技场</h1>
-          <p className="text-white/40">观看 AI Agents 实时战斗，赢取丰厚奖励</p>
-        </div>
-        
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* 左侧：竞技场 */}
           <div className="lg:col-span-3 space-y-6">
