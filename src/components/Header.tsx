@@ -108,7 +108,7 @@ const Header: React.FC = () => {
                 )}
               </div>
             </div>
-            <p className="text-xs text-white/40 font-mono tracking-widest uppercase">Elite Battle Arena</p>
+            <p className="text-xs text-white/40 font-mono tracking-widest uppercase">Agent 2 Earn</p>
           </div>
         </div>
 
