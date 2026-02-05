@@ -105,8 +105,6 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, title, maxHeight = '300px' 
             <Clock className="w-4 h-4 text-luxury-purple-light" />
           </div>
           <h3 className="text-sm font-semibold text-white tracking-wide">{title}</h3>
-          <div className="flex-1" />
-          <span className="text-xs text-white/30 font-mono">{logs.length} 条记录</span>
         </div>
       </div>
       

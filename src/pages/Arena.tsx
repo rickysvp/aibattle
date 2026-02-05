@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import ArenaCanvas from '../components/ArenaCanvas';
 import BattleLog from '../components/BattleLog';
@@ -38,7 +38,10 @@ const Arena: React.FC = () => {
   const navigate = useNavigate();
   const [logTab, setLogTab] = useState<'arena' | 'my'>('arena');
   const [showSettlement, setShowSettlement] = useState(false);
-  
+
+  // 排序状态
+  const [sortBy, setSortBy] = useState<'balance' | 'winRate' | 'profit'>('balance');
+
   // 使用 ref 来管理计时器状态，避免闭包问题
   const timerStateRef = useRef<TimerState>({
     phase: 'waiting',
@@ -265,6 +268,27 @@ const Arena: React.FC = () => {
   const myArenaAgents = myAgents.filter(a => a.status === 'in_arena' || a.status === 'fighting');
   const myIdleAgents = myAgents.filter(a => a.status === 'idle');
 
+  // 排序后的 Agents
+  const sortedAgents = useMemo(() => {
+    return [...myAgents].sort((a: Agent, b: Agent) => {
+      switch (sortBy) {
+        case 'balance':
+          return b.balance - a.balance;
+        case 'winRate':
+          const totalA = a.wins + a.losses;
+          const totalB = b.wins + b.losses;
+          const winRateA = totalA > 0 ? a.wins / totalA : 0;
+          const winRateB = totalB > 0 ? b.wins / totalB : 0;
+          return winRateB - winRateA;
+        case 'profit':
+          // 使用 earnings 作为盈亏
+          return b.earnings - a.earnings;
+        default:
+          return 0;
+      }
+    });
+  }, [myAgents, sortBy]);
+
   // 处理创建 Agent
   const handleCreateAgent = () => {
     if (!wallet.connected) {
@@ -458,9 +482,10 @@ const Arena: React.FC = () => {
           
           {/* 右侧：我的小队 */}
           <div className="lg:col-span-2">
-            {/* 小队概览 */}
-            <div className="card-luxury rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/5">
+            {/* 小队概览 - 高度与左侧一致 */}
+            <div className="card-luxury rounded-2xl overflow-hidden h-[calc(100vh-180px)] flex flex-col">
+              {/* 标题栏 + 铸造按钮 */}
+              <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-luxury-cyan/20 to-luxury-purple/20 border border-luxury-cyan/30 flex items-center justify-center">
                     <Zap className="w-5 h-5 text-luxury-cyan" />
@@ -469,9 +494,42 @@ const Arena: React.FC = () => {
                     <h2 className="text-lg font-semibold text-white">我的小队</h2>
                   </div>
                 </div>
+                {/* 铸造按钮移到标题右侧 */}
+                {wallet.connected && myAgents.length < 30 && (
+                  <button
+                    onClick={handleCreateAgent}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-luxury-purple/10 border border-luxury-purple/30 rounded-lg text-luxury-purple-light hover:bg-luxury-purple/20 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-xs font-medium">铸造</span>
+                  </button>
+                )}
               </div>
-              
-              <div className="p-6">
+
+              {/* 排序选项 */}
+              {wallet.connected && myAgents.length > 0 && (
+                <div className="px-6 py-3 border-b border-white/5 flex items-center gap-2">
+                  <span className="text-xs text-white/40">排序:</span>
+                  <div className="flex gap-1">
+                    {(['balance', 'winRate', 'profit'] as const).map((sort) => (
+                      <button
+                        key={sort}
+                        onClick={() => setSortBy(sort)}
+                        className={`px-2 py-1 rounded text-xs transition-colors ${
+                          sortBy === sort
+                            ? 'bg-luxury-cyan/20 text-luxury-cyan border border-luxury-cyan/30'
+                            : 'text-white/40 hover:text-white/60'
+                        }`}
+                      >
+                        {sort === 'balance' ? '余额' : sort === 'winRate' ? '胜率' : '盈亏'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 内容区域 - 可滚动 */}
+              <div className="flex-1 overflow-y-auto p-6">
                 {!wallet.connected ? (
                   <div className="text-center py-12">
                     <div className="w-20 h-20 rounded-2xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-4">
@@ -501,49 +559,15 @@ const Arena: React.FC = () => {
                     <p className="text-xs text-white/20 mt-3">铸造费用: 100</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {/* 快捷铸造按钮 */}
-                    <button
-                      onClick={handleCreateAgent}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-luxury-purple/10 border border-luxury-purple/30 rounded-xl text-luxury-purple-light hover:bg-luxury-purple/20 transition-colors mb-4"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span className="text-sm font-medium">铸造新 Agent</span>
-                    </button>
-                    
-                    {/* 在竞技场的 Agents */}
-                    {myArenaAgents.length > 0 && (
-                      <div>
-                        <h3 className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold" />
-                          在竞技场 ({myArenaAgents.length})
-                        </h3>
-                        <div className="space-y-3">
-                          {myArenaAgents.map(agent => (
-                            <AgentCard key={agent.id} agent={agent} compact />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* 空闲的 Agents */}
-                    {myIdleAgents.length > 0 && (
-                      <div>
-                        <h3 className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-luxury-cyan" />
-                          空闲中 ({myIdleAgents.length})
-                        </h3>
-                        <div className="space-y-3">
-                          {myIdleAgents.slice(0, 3).map(agent => (
-                            <AgentCard key={agent.id} agent={agent} compact />
-                          ))}
-                          {myIdleAgents.length > 3 && (
-                            <p className="text-xs text-white/30 text-center py-2">
-                              还有 {myIdleAgents.length - 3} 个 Agent...
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                  <div className="space-y-3">
+                    {/* 所有 Agents 列表 - 最多显示30个 */}
+                    {sortedAgents.slice(0, 30).map(agent => (
+                      <AgentCard key={agent.id} agent={agent} compact />
+                    ))}
+                    {myAgents.length > 30 && (
+                      <p className="text-xs text-white/30 text-center py-2">
+                        还有 {myAgents.length - 30} 个 Agent 未显示
+                      </p>
                     )}
                   </div>
                 )}
