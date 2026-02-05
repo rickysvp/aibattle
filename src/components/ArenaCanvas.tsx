@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Agent, Projectile, DamageNumber, CoinTransfer } from '../types';
+import { Agent, Projectile, DamageNumber, CoinTransfer, BalanceChange } from '../types';
 import { useGameStore } from '../store/gameStore';
 import PixelAgent from './PixelAgent';
-import { Swords, Users, Timer, Trophy, Coins } from 'lucide-react';
+import { Swords, Users, Timer, Trophy, Coins, TrendingDown, TrendingUp } from 'lucide-react';
 
 interface ArenaCanvasProps {
   participants: Agent[];
@@ -20,6 +20,7 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const [coinTransfers, setCoinTransfers] = useState<CoinTransfer[]>([]);
+  const [balanceChanges, setBalanceChanges] = useState<BalanceChange[]>([]);
   const [explosions, setExplosions] = useState<{id: string; x: number; y: number; timestamp: number}[]>([]);
   const [attackingAgents, setAttackingAgents] = useState<Set<string>>(new Set());
   const [hurtAgents, setHurtAgents] = useState<Set<string>>(new Set());
@@ -30,29 +31,31 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
   const updateParticipant = useGameStore(state => state.updateParticipant);
   const roundNumber = useGameStore(state => state.arena.roundNumber);
   
-  // 战斗动画循环
+  // 战斗动画循环 - 使用余额作为血量
   useEffect(() => {
     if (phase !== 'fighting' || participants.length < 2) return;
-    
+
     const battleInterval = setInterval(() => {
-      const aliveAgents = participants.filter(a => a.hp > 0);
+      const aliveAgents = participants.filter(a => a.balance > 0);
       if (aliveAgents.length < 2) return;
-      
+
       const attackerIndex = Math.floor(Math.random() * aliveAgents.length);
       let targetIndex = Math.floor(Math.random() * aliveAgents.length);
       while (targetIndex === attackerIndex) {
         targetIndex = Math.floor(Math.random() * aliveAgents.length);
       }
-      
+
       const attacker = aliveAgents[attackerIndex];
       const target = aliveAgents[targetIndex];
-      
+
       const attackerSlot = participants.findIndex(p => p.id === attacker.id);
       const targetSlot = participants.findIndex(p => p.id === target.id);
-      
-      const attackerPos = getSlotPosition(attackerSlot, participants.length);
-      const targetPos = getSlotPosition(targetSlot, participants.length);
-      
+
+      if (attackerSlot === -1 || targetSlot === -1) return;
+
+      const attackerPos = getSlotPosition(attackerSlot, 10);
+      const targetPos = getSlotPosition(targetSlot, 10);
+
       // 设置攻击动画
       setAttackingAgents(prev => new Set(prev).add(attacker.id));
       setTimeout(() => {
@@ -61,9 +64,9 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
           next.delete(attacker.id);
           return next;
         });
-      }, 300);
-      
-      // 创建子弹
+      }, 200);
+
+      // 添加子弹
       const projectile: Projectile = {
         id: Math.random().toString(36).substr(2, 9),
         fromX: attackerPos.x,
@@ -74,16 +77,17 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
         progress: 0,
       };
       setProjectiles(prev => [...prev, projectile]);
-      
+
       // 延迟计算伤害
       setTimeout(() => {
         const isCrit = Math.random() > 0.8;
         const baseDamage = attacker.attack - target.defense + Math.floor(Math.random() * 10);
         const damage = Math.max(1, isCrit ? Math.floor(baseDamage * 1.5) : baseDamage);
-        const newHp = Math.max(0, target.hp - damage);
 
-        // 计算掠夺资金 (造成伤害的 10%)
-        const lootAmount = Math.floor(damage * 0.1);
+        // 计算掠夺资金 (造成伤害的数值)
+        const lootAmount = damage;
+        const newTargetBalance = Math.max(0, target.balance - lootAmount);
+        const newAttackerBalance = attacker.balance + lootAmount;
 
         // 设置受伤动画
         setHurtAgents(prev => new Set(prev).add(target.id));
@@ -105,22 +109,34 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
           timestamp: Date.now(),
         }]);
 
-        // 添加资金转移效果
-        if (lootAmount > 0) {
-          setCoinTransfers(prev => [...prev, {
-            id: Math.random().toString(36).substr(2, 9),
-            x: targetPos.x,
-            y: targetPos.y,
-            amount: lootAmount,
-            timestamp: Date.now(),
-          }]);
-        }
+        // 添加目标余额减少效果（红色）
+        setBalanceChanges(prev => [...prev, {
+          id: Math.random().toString(36).substr(2, 9),
+          x: targetPos.x,
+          y: targetPos.y,
+          amount: lootAmount,
+          isGain: false,
+          timestamp: Date.now(),
+        }]);
 
-        // 更新目标 HP
-        updateParticipant(target.id, { hp: newHp, status: newHp <= 0 ? 'dead' : 'fighting' });
+        // 添加攻击者余额增加效果（绿色）
+        setBalanceChanges(prev => [...prev, {
+          id: Math.random().toString(36).substr(2, 9),
+          x: attackerPos.x,
+          y: attackerPos.y,
+          amount: lootAmount,
+          isGain: true,
+          timestamp: Date.now(),
+        }]);
+
+        // 更新目标余额（减少）
+        updateParticipant(target.id, { balance: newTargetBalance, status: newTargetBalance <= 0 ? 'dead' : 'fighting' });
+
+        // 更新攻击者余额（增加）
+        updateParticipant(attacker.id, { balance: newAttackerBalance });
 
         // 击杀效果
-        if (newHp <= 0) {
+        if (newTargetBalance <= 0) {
           setExplosions(prev => [...prev, {
             id: Math.random().toString(36).substr(2, 9),
             x: targetPos.x,
@@ -143,12 +159,12 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
             attacker,
             defender: target,
             damage,
-            message: `${attacker.name} 对 ${target.name} 造成 ${damage} 点伤害`,
+            message: `${attacker.name} 掠夺了 ${target.name} ${lootAmount} $MON`,
           });
         }
       }, 200);
     }, 400);
-    
+
     return () => clearInterval(battleInterval);
   }, [phase, participants, addBattleLog, updateParticipant]);
   
@@ -171,12 +187,13 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
     };
   }, []);
   
-  // 清理伤害数字、资金转移和爆炸效果
+  // 清理伤害数字、资金转移、余额变化和爆炸效果
   useEffect(() => {
     const cleanup = setInterval(() => {
       const now = Date.now();
       setDamageNumbers(prev => prev.filter(d => now - d.timestamp < 1000));
       setCoinTransfers(prev => prev.filter(c => now - c.timestamp < 1500));
+      setBalanceChanges(prev => prev.filter(b => now - b.timestamp < 1200));
       setExplosions(prev => prev.filter(e => now - e.timestamp < 500));
     }, 100);
     return () => clearInterval(cleanup);
@@ -316,7 +333,7 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
                   <PixelAgent
                     agent={participant}
                     size={40}
-                    showHp={phase === 'fighting' || phase === 'settlement'}
+                    showBalance={phase === 'fighting' || phase === 'settlement'}
                     isAttacking={isAttacking}
                     isHurt={isHurt}
                   />
@@ -432,6 +449,35 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
           <div className="flex items-center gap-1 bg-luxury-gold/90 text-void px-2 py-1 rounded-full shadow-lg shadow-luxury-gold/50">
             <Coins className="w-3 h-3" />
             <span className="text-xs font-bold font-mono">+{c.amount}</span>
+          </div>
+        </div>
+      ))}
+
+      {/* 余额变化效果 - 绿色加血，红色减血 */}
+      {balanceChanges.map(b => (
+        <div
+          key={b.id}
+          className="absolute pointer-events-none z-36"
+          style={{
+            left: `${b.x}%`,
+            top: `${b.y}%`,
+            transform: 'translate(-50%, -50%)',
+            animation: 'balance-change 1.2s ease-out forwards',
+          }}
+        >
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-full shadow-lg ${
+            b.isGain
+              ? 'bg-luxury-green/90 text-white shadow-luxury-green/50'
+              : 'bg-luxury-rose/90 text-white shadow-luxury-rose/50'
+          }`}>
+            {b.isGain ? (
+              <TrendingUp className="w-3 h-3" />
+            ) : (
+              <TrendingDown className="w-3 h-3" />
+            )}
+            <span className="text-xs font-bold font-mono">
+              {b.isGain ? '+' : '-'}{b.amount} $MON
+            </span>
           </div>
         </div>
       ))}

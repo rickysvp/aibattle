@@ -281,7 +281,7 @@ const Arena: React.FC = () => {
                     <Swords className="w-5 h-5 text-luxury-purple-light" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-white">战斗舞台</h2>
+                    <h2 className="text-lg font-semibold text-white">AIrena</h2>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-mono">
                       Round {currentRound}
                     </span>
@@ -316,7 +316,7 @@ const Arena: React.FC = () => {
                               <p className="text-xs text-white/40">第 {currentRound} 轮结算</p>
                             </div>
                           </div>
-                          <button 
+                          <button
                             onClick={() => setShowSettlement(false)}
                             className="p-2 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
                           >
@@ -324,50 +324,55 @@ const Arena: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                      
-                      {/* TOP3 列表 */}
-                      <div className="p-8">
-                        <div className="space-y-4">
-                          {arena.top3.map((item, index) => (
-                            <div 
-                              key={item.agent.id} 
-                              className={`flex items-center gap-4 p-4 rounded-2xl ${
-                                index === 0 
-                                  ? 'bg-gradient-to-r from-luxury-gold/20 to-luxury-amber/10 border border-luxury-gold/30' 
-                                  : index === 1 
-                                    ? 'bg-gradient-to-r from-gray-400/20 to-gray-300/10 border border-gray-400/30'
-                                    : 'bg-gradient-to-r from-amber-700/20 to-amber-600/10 border border-amber-600/30'
-                              }`}
-                              style={{ animationDelay: `${index * 150}ms` }}
-                            >
-                              {/* 排名 */}
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold ${
-                                index === 0 
-                                  ? 'bg-luxury-gold text-void' 
-                                  : index === 1 
-                                    ? 'bg-gray-300 text-void'
-                                    : 'bg-amber-600 text-white'
-                              }`}>
-                                {index + 1}
+
+                      {/* TOP3 布局 - 第一名在上，二三名在下并排 */}
+                      <div className="p-6">
+                        {/* 第一名 - 突出显示 */}
+                        {arena.top3[0] && (
+                          <div className="mb-4 p-5 rounded-2xl bg-gradient-to-r from-luxury-gold/30 to-luxury-amber/20 border-2 border-luxury-gold/50 animate-pulse">
+                            <div className="flex items-center gap-4">
+                              <div className="w-16 h-16 rounded-2xl bg-luxury-gold text-void flex items-center justify-center text-3xl font-bold shadow-lg shadow-luxury-gold/30">
+                                🥇
                               </div>
-                              
-                              {/* 信息 */}
                               <div className="flex-1">
-                                <p className="text-lg font-semibold text-white">{item.agent.name}</p>
-                                <p className="text-xs text-white/40">
-                                  HP: {item.agent.hp}/{item.agent.maxHp}
-                                </p>
+                                <p className="text-xl font-bold text-white">{arena.top3[0].agent.name}</p>
+                                <p className="text-sm text-luxury-gold">冠军</p>
                               </div>
-                              
-                              {/* 盈利 */}
                               <div className="text-right">
-                                <p className="text-2xl font-bold text-luxury-green font-mono">+{item.profit}</p>
-                                <p className="text-xs text-white/40">盈利</p>
+                                <p className="text-3xl font-bold text-luxury-green font-mono">+{arena.top3[0].profit} <span className="text-sm">$MON</span></p>
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        )}
+
+                        {/* 第二、三名 - 并排显示 */}
+                        <div className="grid grid-cols-2 gap-3">
+                          {arena.top3[1] && (
+                            <div className="p-4 rounded-2xl bg-gradient-to-r from-gray-400/20 to-gray-300/10 border border-gray-400/30">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-xl bg-gray-300 text-void flex items-center justify-center text-xl font-bold">
+                                  🥈
+                                </div>
+                                <span className="text-sm text-gray-300">亚军</span>
+                              </div>
+                              <p className="text-base font-semibold text-white truncate">{arena.top3[1].agent.name}</p>
+                              <p className="text-lg font-bold text-luxury-green font-mono mt-1">+{arena.top3[1].profit} <span className="text-xs">$MON</span></p>
+                            </div>
+                          )}
+                          {arena.top3[2] && (
+                            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-700/20 to-amber-600/10 border border-amber-600/30">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-xl font-bold">
+                                  🥉
+                                </div>
+                                <span className="text-sm text-amber-600">季军</span>
+                              </div>
+                              <p className="text-base font-semibold text-white truncate">{arena.top3[2].agent.name}</p>
+                              <p className="text-lg font-bold text-luxury-green font-mono mt-1">+{arena.top3[2].profit} <span className="text-xs">$MON</span></p>
+                            </div>
+                          )}
                         </div>
-                        
+
                         {/* 提示 */}
                         <p className="text-center text-white/30 text-sm mt-6">
                           5秒后开始下一轮...

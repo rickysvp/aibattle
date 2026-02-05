@@ -4,7 +4,7 @@ import { Agent } from '../types';
 interface PixelAgentProps {
   agent: Agent;
   size?: number;
-  showHp?: boolean;
+  showBalance?: boolean;
   isAttacking?: boolean;
   isHurt?: boolean;
 }
@@ -13,13 +13,12 @@ interface PixelAgentProps {
 const PixelAgent: React.FC<PixelAgentProps> = ({ 
   agent, 
   size = 32, 
-  showHp = false,
+  showBalance = false,
   isAttacking = false,
   isHurt = false,
 }) => {
-  const { color, hp, maxHp, pixelStyle } = agent;
-  const hpPercent = (hp / maxHp) * 100;
-  const isDead = hp <= 0;
+  const { color, balance, pixelStyle } = agent;
+  const isDead = balance <= 0;
   
   // 根据 pixelStyle 选择不同的像素人造型
   const getPixelPattern = () => {
@@ -168,22 +167,18 @@ const PixelAgent: React.FC<PixelAgentProps> = ({
         ${isHurt ? 'animate-shake' : ''}`}
       style={{ 
         width: size, 
-        height: size + (showHp ? 10 : 0),
+        height: size + (showBalance ? 12 : 0),
         opacity: isDead ? 0.4 : 1,
         filter: isDead ? 'grayscale(100%)' : 'none',
       }}
     >
-      {/* HP 条 */}
-      {showHp && !isDead && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-full max-w-[40px] h-1.5 bg-gray-800/80 rounded-full overflow-hidden border border-gray-700/50">
-          <div 
-            className="h-full transition-all duration-300 rounded-full"
-            style={{ 
-              width: `${hpPercent}%`,
-              backgroundColor: hpPercent > 60 ? '#22c55e' : hpPercent > 30 ? '#eab308' : '#ef4444',
-              boxShadow: `0 0 4px ${hpPercent > 60 ? '#22c55e' : hpPercent > 30 ? '#eab308' : '#ef4444'}`
-            }}
-          />
+      {/* 余额显示 */}
+      {showBalance && !isDead && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
+          <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-void-panel/90 rounded-full border border-luxury-gold/30">
+            <span className="text-[8px] text-luxury-gold">$</span>
+            <span className="text-[9px] font-mono text-white">{balance}</span>
+          </div>
         </div>
       )}
       

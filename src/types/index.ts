@@ -95,3 +95,13 @@ export interface CoinTransfer {
   amount: number;
   timestamp: number;
 }
+
+// 余额变化飘字（加血/减血）
+export interface BalanceChange {
+  id: string;
+  x: number;
+  y: number;
+  amount: number;
+  isGain: boolean;
+  timestamp: number;
+}
