@@ -221,21 +221,29 @@ const Arena: React.FC = () => {
         
         setTop3(top3);
         setShowSettlement(true);
-        
+
         addBattleLog({
           type: 'round_end',
           message: `第 ${timerStateRef.current.round} 轮结束！冠军: ${top3[0]?.agent.name || '无'}`,
           isHighlight: true,
         });
-        
+
         // 重置参赛者状态
         currentParticipants.forEach(p => {
           const newStatus = p.hp > 0 ? 'in_arena' : 'dead';
           updateParticipant(p.id, { status: newStatus, hp: p.maxHp });
         });
-        
-        // 等待5秒
-        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // 3秒倒计时后关闭结算层
+        for (let i = 3; i > 0; i--) {
+          if (!isActive) return;
+          // 更新倒计时显示
+          const settlementEl = document.getElementById('settlement-countdown');
+          if (settlementEl) {
+            settlementEl.textContent = `${i}秒后开始下一轮...`;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
         setShowSettlement(false);
         
         // ===== 6. 等待阶段 =====
@@ -377,7 +385,7 @@ const Arena: React.FC = () => {
                         </div>
 
                         {/* 提示 */}
-                        <p className="text-center text-white/30 text-xs mt-4">
+                        <p id="settlement-countdown" className="text-center text-white/30 text-xs mt-4">
                           3秒后开始下一轮...
                         </p>
                       </div>
