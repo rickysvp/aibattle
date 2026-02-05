@@ -44,15 +44,8 @@ const Header: React.FC = () => {
     >
         <div className="max-w-screen-xl mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
-        <div
-          className="flex items-center gap-4 group cursor-pointer"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-        >
+        <div className="flex items-center gap-4">
           <div className="relative">
-            {/* 发光背景 */}
-            <div className={`absolute inset-0 bg-gradient-to-br from-luxury-purple to-luxury-cyan rounded-xl blur-xl transition-opacity duration-300 ${hovered ? 'opacity-60' : 'opacity-40'}`} />
-
             {/* Logo 图标 */}
             <div className="relative w-12 h-12 bg-gradient-to-br from-void-panel to-void-elevated rounded-xl border border-luxury-purple/30 flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-luxury-purple/20 to-luxury-cyan/20" />
@@ -61,16 +54,12 @@ const Header: React.FC = () => {
               {/* 装饰角标 */}
               <div className="absolute top-0 right-0 w-3 h-3 bg-luxury-gold rounded-bl-lg" />
             </div>
-
-            {/* 脉冲动画 */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-luxury-purple via-luxury-cyan to-luxury-purple rounded-xl opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-300" />
           </div>
 
           <div>
             <h1 className="text-2xl font-bold font-display text-white tracking-wider">
               AI<span className="text-gradient">rena</span>
             </h1>
-            <p className="text-xs text-white/40 font-mono tracking-widest uppercase">Agent 2 Earn</p>
           </div>
         </div>
 

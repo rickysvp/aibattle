@@ -403,16 +403,11 @@ const Arena: React.FC = () => {
             {/* 战斗画面 */}
             <div className="card-luxury rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-luxury-purple/20 to-luxury-cyan/20 border border-luxury-purple/30 flex items-center justify-center">
-                    <Swords className="w-5 h-5 text-luxury-purple-light" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-white">{t('arena.title')}</h2>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-mono">
-                      {t('arena.round')} {displaySystemRounds.toLocaleString()}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-semibold text-white">BATTLE</h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-mono">
+                    {t('arena.round')} {displaySystemRounds.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-luxury-green/10 border border-luxury-green/20">
                   <Users className="w-4 h-4 text-luxury-green" />
@@ -523,7 +518,7 @@ const Arena: React.FC = () => {
                         : 'text-white/60 hover:text-white'
                     }`}
                   >
-                    {t('arena.rooms')}
+                    BATTLE LOG
                   </button>
                   <button
                     onClick={() => setLogTab('my')}
@@ -533,7 +528,7 @@ const Arena: React.FC = () => {
                         : 'text-white/60 hover:text-white'
                     }`}
                   >
-                    {t('arena.history')}
+                    SQUAD LOG
                   </button>
                 </div>
 
