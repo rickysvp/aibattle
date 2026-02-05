@@ -55,7 +55,12 @@ const Header: React.FC = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-luxury-purple via-luxury-cyan to-luxury-purple rounded-xl opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-300" />
           </div>
 
-          <p className="text-xs text-white/40 font-mono tracking-widest uppercase">Agent 2 Earn</p>
+          <div>
+            <h1 className="text-2xl font-bold font-display text-white tracking-wider">
+              AI<span className="text-gradient">rena</span>
+            </h1>
+            <p className="text-xs text-white/40 font-mono tracking-widest uppercase">Agent 2 Earn</p>
+          </div>
         </div>
 
         {/* 钱包连接 */}

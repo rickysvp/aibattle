@@ -337,10 +337,10 @@ const WalletPage: React.FC = () => {
             </button>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* From */}
             <div className="bg-void rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-white/60">支付</span>
                 <span className="text-xs text-white/40">余额: 1,000 USDT</span>
               </div>
@@ -350,15 +350,15 @@ const WalletPage: React.FC = () => {
                   value={fromAmount}
                   onChange={(e) => setFromAmount(e.target.value)}
                   placeholder="0.00"
-                  className="flex-1 bg-transparent text-2xl font-bold text-white placeholder:text-white/20 outline-none"
+                  className="flex-1 bg-transparent text-2xl font-bold text-white placeholder:text-white/20 outline-none min-w-0"
                 />
                 <button 
                   onClick={() => setFromAmount('1000')}
-                  className="text-xs px-2 py-1 bg-white/10 rounded text-white/60 hover:text-white transition-colors"
+                  className="text-xs px-2 py-1 bg-white/10 rounded text-white/60 hover:text-white transition-colors flex-shrink-0"
                 >
                   MAX
                 </button>
-                <div className="flex items-center gap-2 px-3 py-2 bg-void-light rounded-lg">
+                <div className="flex items-center gap-2 px-3 py-2 bg-void-light rounded-lg flex-shrink-0">
                   <div className="w-6 h-6 rounded-full bg-luxury-green flex items-center justify-center text-xs font-bold text-white">$</div>
                   <span className="text-sm font-medium text-white">USDT</span>
                 </div>
@@ -366,7 +366,7 @@ const WalletPage: React.FC = () => {
             </div>
             
             {/* Arrow */}
-            <div className="flex justify-center -my-2 relative z-10">
+            <div className="flex justify-center -my-1 relative z-10">
               <button 
                 onClick={() => { setFromToken(toToken); setToToken(fromToken); }}
                 className="p-2 bg-void-panel border border-white/20 rounded-xl hover:border-luxury-cyan/50 transition-colors"
@@ -377,7 +377,7 @@ const WalletPage: React.FC = () => {
             
             {/* To */}
             <div className="bg-void rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-white/60">获得</span>
                 <span className="text-xs text-white/40">余额: {wallet.balance.toLocaleString()} MON</span>
               </div>
@@ -386,9 +386,9 @@ const WalletPage: React.FC = () => {
                   type="text" 
                   value={toAmount}
                   readOnly
-                  className="flex-1 bg-transparent text-2xl font-bold text-luxury-cyan outline-none"
+                  className="flex-1 bg-transparent text-2xl font-bold text-luxury-cyan outline-none min-w-0"
                 />
-                <div className="flex items-center gap-2 px-3 py-2 bg-void-light rounded-lg">
+                <div className="flex items-center gap-2 px-3 py-2 bg-void-light rounded-lg flex-shrink-0">
                   <div className="w-6 h-6 rounded-full bg-luxury-gold flex items-center justify-center text-xs font-bold text-white">M</div>
                   <span className="text-sm font-medium text-white">MON</span>
                 </div>
@@ -396,29 +396,31 @@ const WalletPage: React.FC = () => {
             </div>
             
             {/* Rate & Slippage */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-white/40">汇率</span>
-              <span className="text-white">1 USDT = {(1/MON_TO_USDT_RATE).toFixed(2)} MON</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-white/40">滑点容忍度</span>
-              <div className="flex gap-2">
-                {[0.5, 1, 3].map(s => (
-                  <button 
-                    key={s}
-                    onClick={() => setSlippage(s)}
-                    className={`px-2 py-1 rounded text-xs transition-colors ${slippage === s ? 'bg-luxury-cyan text-white' : 'bg-white/10 text-white/60'}`}
-                  >
-                    {s}%
-                  </button>
-                ))}
+            <div className="p-3 bg-void rounded-lg border border-white/5 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/40">汇率</span>
+                <span className="text-white">1 USDT = {(1/MON_TO_USDT_RATE).toFixed(2)} MON</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/40">滑点容忍度</span>
+                <div className="flex gap-2">
+                  {[0.5, 1, 3].map(s => (
+                    <button 
+                      key={s}
+                      onClick={() => setSlippage(s)}
+                      className={`px-2 py-1 rounded text-xs transition-colors ${slippage === s ? 'bg-luxury-cyan text-white' : 'bg-white/10 text-white/60'}`}
+                    >
+                      {s}%
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             
             <button 
               onClick={handleSwap}
               disabled={!fromAmount || parseFloat(fromAmount) <= 0 || isLoading['swap']}
-              className="w-full py-4 rounded-xl bg-luxury-gold text-white font-bold text-lg hover:bg-luxury-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-luxury-gold text-white font-bold text-lg hover:bg-luxury-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 mt-4"
             >
               {isLoading['swap'] ? <Loader2 className="w-5 h-5 animate-spin" /> : '确认兑换'}
             </button>
@@ -469,41 +471,43 @@ const WalletPage: React.FC = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="输入或粘贴地址"
-                  className="w-full bg-void border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:border-luxury-cyan focus:outline-none"
+                  className="w-full bg-void border border-white/10 rounded-xl px-4 py-3 pr-16 text-white placeholder:text-white/30 focus:border-luxury-cyan focus:outline-none"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-luxury-cyan hover:text-luxury-cyan-light">
+                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 bg-white/10 rounded text-luxury-cyan hover:bg-white/20 transition-colors">
                   地址簿
                 </button>
               </div>
               {/* Saved addresses */}
-              <div className="flex gap-2 mt-2">
-                {savedAddresses.map((saved, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => setAddress(saved.address)}
-                    className="text-xs px-2 py-1 bg-white/5 rounded-lg text-white/60 hover:bg-white/10 transition-colors"
-                  >
-                    {saved.name}
-                  </button>
-                ))}
-              </div>
+              {savedAddresses.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {savedAddresses.map((saved, idx) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setAddress(saved.address)}
+                      className="text-xs px-3 py-1.5 bg-white/5 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors border border-white/5"
+                    >
+                      {saved.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             
             {/* Amount */}
             <div>
               <label className="text-sm text-white/60 mb-2 block">提现金额</label>
               <div className="bg-void rounded-xl p-4 border border-white/10">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <input 
                     type="number" 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
-                    className="flex-1 bg-transparent text-2xl font-bold text-white placeholder:text-white/20 outline-none"
+                    className="flex-1 bg-transparent text-2xl font-bold text-white placeholder:text-white/20 outline-none min-w-0"
                   />
                   <button 
                     onClick={() => setAmount(wallet.balance.toString())}
-                    className="text-xs px-3 py-1.5 bg-luxury-cyan/20 rounded-lg text-luxury-cyan hover:bg-luxury-cyan/30 transition-colors"
+                    className="text-xs px-3 py-1.5 bg-luxury-cyan/20 rounded-lg text-luxury-cyan hover:bg-luxury-cyan/30 transition-colors flex-shrink-0"
                   >
                     全部
                   </button>
@@ -516,21 +520,26 @@ const WalletPage: React.FC = () => {
             </div>
             
             {/* Fee info */}
-            <div className="p-3 bg-void rounded-lg border border-white/5 space-y-2">
+            <div className="p-4 bg-void rounded-xl border border-white/5 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/40">提现金额</span>
+                <span className="text-white font-medium">{amount || '0'} MON</span>
+              </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/40">网络手续费</span>
                 <span className="text-white">{fee} MON</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/40">实际到账</span>
-                <span className="text-luxury-green font-bold">{receiveAmount} MON</span>
+              <div className="h-px bg-white/10" />
+              <div className="flex items-center justify-between">
+                <span className="text-white/60 text-sm">实际到账</span>
+                <span className="text-luxury-green font-bold text-lg">{receiveAmount} MON</span>
               </div>
             </div>
             
             <button 
               onClick={handleWithdraw}
               disabled={!address || !amount || parseFloat(amount) <= fee || isLoading['withdraw']}
-              className="w-full py-4 rounded-xl bg-luxury-amber text-white font-bold text-lg hover:bg-luxury-amber/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-luxury-amber text-white font-bold text-lg hover:bg-luxury-amber/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {isLoading['withdraw'] ? <Loader2 className="w-5 h-5 animate-spin" /> : '确认提现'}
             </button>
