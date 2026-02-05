@@ -270,7 +270,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   ],
 
   // 系统全局轮次计数（所有并行竞技场总和）
-  totalSystemRounds: 12580, // 初始值，表示系统已经运行了很多轮
+  totalSystemRounds: 5, // 从个位数开始
   lastSystemRoundUpdate: Date.now(),
 
   incrementSystemRound: () => {
@@ -284,10 +284,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const state = get();
     const now = Date.now();
     const elapsed = now - state.lastSystemRoundUpdate;
-    // 每2秒增加1轮，模拟多个竞技场并行运行
-    // 假设有50个并行竞技场，每个竞技场每10秒完成一轮
-    // 则每2秒增加 50/5 = 10 轮
-    const additionalRounds = Math.floor(elapsed / 200) * 10;
+    // 随机增加 1-5 轮，模拟多个竞技场并行运行
+    const additionalRounds = Math.floor(elapsed / 300) * (Math.floor(Math.random() * 5) + 1);
     return state.totalSystemRounds + additionalRounds;
   },
 }));

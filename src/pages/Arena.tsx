@@ -281,7 +281,7 @@ const Arena: React.FC = () => {
   const currentSelectedSlots = timerStateRef.current.selectedSlots;
 
   // 使用系统全局轮次计数 - 动态计算
-  const [displaySystemRounds, setDisplaySystemRounds] = useState(12580);
+  const [displaySystemRounds, setDisplaySystemRounds] = useState(5);
 
   useEffect(() => {
     const updateRounds = () => {
@@ -467,7 +467,6 @@ const Arena: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-white">我的小队</h2>
-                    <p className="text-xs text-white/40">管理你的 Agents</p>
                   </div>
                 </div>
               </div>
