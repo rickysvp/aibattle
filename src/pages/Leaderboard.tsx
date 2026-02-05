@@ -119,25 +119,25 @@ const Top3Card: React.FC<{
 
   if (rank === 1) {
     return (
-      <div className={`card-luxury rounded-xl border ${config.border} p-4 mb-3 ${config.shadow}`}>
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-full ${config.bg} ${config.text} flex items-center justify-center shadow-lg flex-shrink-0`}>
-            <Icon className="w-7 h-7" />
+      <div className={`card-luxury rounded-xl border ${config.border} p-5 mb-3 ${config.shadow}`}>
+        <div className="flex flex-col items-center text-center">
+          <div className={`w-16 h-16 rounded-full ${config.bg} ${config.text} flex items-center justify-center shadow-lg mb-3`}>
+            <Icon className="w-8 h-8" />
           </div>
-          {image}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-white truncate">{name}</span>
-              <span className={`px-2 py-0.5 ${isGold ? 'bg-luxury-gold/20 text-luxury-gold' : 'bg-luxury-cyan/20 text-luxury-cyan'} text-xs rounded-full flex-shrink-0`}>
-                {config.label}
-              </span>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <span className={`font-mono font-bold ${isGold ? 'text-luxury-gold' : 'text-luxury-cyan'}`}>
-                +{profit.toLocaleString()} $MON
-              </span>
-              <span className="text-white/40 truncate">{subtitle}</span>
-            </div>
+          <div className="mb-3">
+            {image}
+          </div>
+          <div className="mb-1">
+            <span className="font-bold text-white text-lg">{name}</span>
+          </div>
+          <span className={`px-3 py-1 ${isGold ? 'bg-luxury-gold/20 text-luxury-gold' : 'bg-luxury-cyan/20 text-luxury-cyan'} text-xs rounded-full mb-3`}>
+            {config.label}
+          </span>
+          <div className="text-center">
+            <span className={`font-mono font-bold text-xl ${isGold ? 'text-luxury-gold' : 'text-luxury-cyan'}`}>
+              +{profit.toLocaleString()} $MON
+            </span>
+            <div className="text-white/50 text-sm mt-1">{subtitle}</div>
           </div>
         </div>
       </div>
@@ -145,16 +145,17 @@ const Top3Card: React.FC<{
   }
 
   return (
-    <div className={`card-luxury rounded-xl border ${config.border} p-3`}>
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-full ${config.bg} ${config.text} flex items-center justify-center flex-shrink-0`}>
-          <Icon className="w-5 h-5" />
+    <div className={`card-luxury rounded-xl border ${config.border} p-4`}>
+      <div className="flex flex-col items-center text-center">
+        <div className={`w-12 h-12 rounded-full ${config.bg} ${config.text} flex items-center justify-center mb-2`}>
+          <Icon className="w-6 h-6" />
         </div>
-        {image}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-white truncate mb-0.5">{name}</div>
-          <span className="text-luxury-green font-mono text-sm">+{profit.toLocaleString()}</span>
+        <div className="mb-2">
+          {image}
         </div>
+        <div className="text-sm font-medium text-white truncate mb-1">{name}</div>
+        <span className="text-luxury-green font-mono text-sm mb-1">+{profit.toLocaleString()} $MON</span>
+        <span className="text-white/40 text-xs truncate">{subtitle}</span>
       </div>
     </div>
   );
@@ -267,14 +268,14 @@ const Leaderboard: React.FC = () => {
                   rank={2}
                   name={currentAgents[1]?.name}
                   profit={currentAgents[1]?.profit}
-                  subtitle=""
+                  subtitle={`${currentAgents[1]?.winRate}% 胜率 · ${currentAgents[1]?.battles} 场`}
                   image={<NFTAvatar gradient={currentAgents[1]?.nftImage} size="md" />}
                 />
                 <Top3Card
                   rank={3}
                   name={currentAgents[2]?.name}
                   profit={currentAgents[2]?.profit}
-                  subtitle=""
+                  subtitle={`${currentAgents[2]?.winRate}% 胜率 · ${currentAgents[2]?.battles} 场`}
                   image={<NFTAvatar gradient={currentAgents[2]?.nftImage} size="md" />}
                 />
               </div>
@@ -335,14 +336,14 @@ const Leaderboard: React.FC = () => {
                   rank={2}
                   name={currentUsers[1]?.name}
                   profit={currentUsers[1]?.profit}
-                  subtitle=""
+                  subtitle={`${currentUsers[1]?.agentsCount} Agents`}
                   image={<UserAvatar src={currentUsers[1]?.avatar} size="md" />}
                 />
                 <Top3Card
                   rank={3}
                   name={currentUsers[2]?.name}
                   profit={currentUsers[2]?.profit}
-                  subtitle=""
+                  subtitle={`${currentUsers[2]?.agentsCount} Agents`}
                   image={<UserAvatar src={currentUsers[2]?.avatar} size="md" />}
                 />
               </div>
