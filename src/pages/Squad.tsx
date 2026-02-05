@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import AgentCard from '../components/AgentCard';
-import PixelAgent from '../components/PixelAgent';
 import { 
   Users, 
   Plus, 
   Filter, 
-  Sparkles, 
+  Sparkles,
   TrendingUp, 
-  Skull, 
+  Skull,
   Swords, 
   Wallet,
   Zap,
@@ -33,7 +32,6 @@ const Squad: React.FC = () => {
   const [mintCount, setMintCount] = useState(1);
   const [filter, setFilter] = useState<'all' | 'idle' | 'in_arena' | 'fighting'>('all');
   const [isMinting, setIsMinting] = useState(false);
-  const [newAgent, setNewAgent] = useState<ReturnType<typeof mintAgent>>(null);
   
   // 批量操作状态
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
@@ -42,19 +40,15 @@ const Squad: React.FC = () => {
   
   const handleMint = async () => {
     if (!wallet.connected || wallet.balance < mintCost * mintCount) return;
-    
+
     setIsMinting(true);
-    setNewAgent(null);
-    
+
     // 模拟铸造延迟
     for (let i = 0; i < mintCount; i++) {
       await new Promise(resolve => setTimeout(resolve, 500));
-      const agent = mintAgent();
-      if (i === mintCount - 1) {
-        setNewAgent(agent);
-      }
+      mintAgent();
     }
-    
+
     setIsMinting(false);
   };
   
@@ -179,8 +173,10 @@ const Squad: React.FC = () => {
   const canJoinArena = idleAgents.filter(a => a.balance > 0);
   
   const totalBalance = myAgents.reduce((sum, a) => sum + a.balance, 0);
-  const totalKills = myAgents.reduce((sum, a) => sum + a.kills, 0);
-  const totalWins = myAgents.reduce((sum, a) => sum + a.wins, 0);
+  const totalProfit = myAgents.reduce((sum, a) => sum + a.earnings, 0);
+  const avgWinRate = myAgents.length > 0
+    ? Math.round(myAgents.reduce((sum, a) => sum + (a.wins + a.losses > 0 ? a.wins / (a.wins + a.losses) : 0), 0) / myAgents.length * 100)
+    : 0;
 
   const getFilterConfig = (key: string) => {
     switch (key) {
@@ -359,25 +355,27 @@ const Squad: React.FC = () => {
                 </div>
                 <p className="text-3xl font-bold text-luxury-gold font-mono">{totalBalance.toLocaleString()}</p>
               </div>
-              
-              <div className="card-luxury rounded-2xl p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-luxury-rose/10 border border-luxury-rose/20 flex items-center justify-center">
-                    <Skull className="w-5 h-5 text-luxury-rose" />
-                  </div>
-                  <span className="text-xs text-white/40 uppercase tracking-wider">总击杀</span>
-                </div>
-                <p className="text-3xl font-bold text-luxury-rose font-mono">{totalKills}</p>
-              </div>
-              
+
               <div className="card-luxury rounded-2xl p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-luxury-green/10 border border-luxury-green/20 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-luxury-green" />
                   </div>
-                  <span className="text-xs text-white/40 uppercase tracking-wider">总胜场</span>
+                  <span className="text-xs text-white/40 uppercase tracking-wider">总利润</span>
                 </div>
-                <p className="text-3xl font-bold text-luxury-green font-mono">{totalWins}</p>
+                <p className={`text-3xl font-bold font-mono ${totalProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
+                  {totalProfit >= 0 ? '+' : ''}{totalProfit.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="card-luxury rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-luxury-cyan/10 border border-luxury-cyan/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-luxury-cyan" />
+                  </div>
+                  <span className="text-xs text-white/40 uppercase tracking-wider">平均胜率</span>
+                </div>
+                <p className="text-3xl font-bold text-luxury-cyan font-mono">{avgWinRate}%</p>
               </div>
             </div>
             
@@ -439,29 +437,6 @@ const Squad: React.FC = () => {
                   </button>
                 </div>
                 
-                {/* 新铸造的 Agent 展示 */}
-                {newAgent && (
-                  <div className="mt-6 p-5 bg-luxury-green/5 rounded-xl border border-luxury-green/20 animate-slide-up">
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-luxury-green/20 blur-xl rounded-full" />
-                        <PixelAgent agent={newAgent} size={64} />
-                      </div>
-                      <div>
-                        <p className="text-luxury-green font-semibold flex items-center gap-2">
-                          <Sparkles className="w-4 h-4" />
-                          铸造成功！
-                        </p>
-                        <p className="text-white text-lg font-medium">{newAgent.name}</p>
-                        <p className="text-xs text-white/40 mt-1">
-                          攻击: <span className="text-luxury-rose">{newAgent.attack}</span> | 
-                          防御: <span className="text-luxury-cyan">{newAgent.defense}</span> | 
-                          HP: <span className="text-luxury-green">{newAgent.maxHp}</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
             
