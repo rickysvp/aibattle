@@ -75,24 +75,32 @@ const Squad: React.FC = () => {
     }
   };
   
-  // 批量充值
+  // 批量充值 - 平均分配给选中的 Agents
   const handleBatchRecharge = () => {
-    const amount = parseFloat(batchAmount);
-    if (!amount || amount <= 0) return;
-    
-    const totalNeeded = amount * selectedAgents.size;
-    if (totalNeeded > wallet.balance) {
-      alert(`余额不足，需要 ${totalNeeded}，当前余额 ${wallet.balance}`);
+    const totalAmount = parseFloat(batchAmount);
+    if (!totalAmount || totalAmount <= 0) return;
+
+    if (totalAmount > wallet.balance) {
+      alert(`余额不足，需要 ${totalAmount}，当前余额 ${wallet.balance}`);
       return;
     }
-    
-    selectedAgents.forEach(agentId => {
-      allocateFunds(agentId, amount);
+
+    // 平均分配给每个选中的 Agent
+    const amountPerAgent = Math.floor(totalAmount / selectedAgents.size);
+    const remainder = totalAmount - (amountPerAgent * selectedAgents.size);
+
+    const agentIds = Array.from(selectedAgents);
+    agentIds.forEach((agentId, index) => {
+      // 第一个 Agent 获得余数
+      const amount = index === 0 ? amountPerAgent + remainder : amountPerAgent;
+      if (amount > 0) {
+        allocateFunds(agentId, amount);
+      }
     });
-    
+
     setBatchAmount('');
     setSelectedAgents(new Set());
-    alert(`成功为 ${selectedAgents.size} 个 Agent 充值 ${amount}`);
+    alert(`成功分配 ${totalAmount} 给 ${selectedAgents.size} 个 Agent，每个约 ${amountPerAgent}`);
   };
   
   // 一键加入竞技场（选中）
@@ -119,31 +127,38 @@ const Squad: React.FC = () => {
     alert(`成功将 ${agentsToJoin.length} 个 Agent 加入竞技场`);
   };
 
-  // 一键充值所有空闲 Agents
+  // 一键充值所有空闲 Agents - 平均分配
   const handleRechargeAll = () => {
     if (idleAgents.length === 0) {
       alert('没有空闲的 Agent');
       return;
     }
-    
-    const amount = parseFloat(batchAmount);
-    if (!amount || amount <= 0) {
+
+    const totalAmount = parseFloat(batchAmount);
+    if (!totalAmount || totalAmount <= 0) {
       alert('请输入有效的充值金额');
       return;
     }
-    
-    const totalNeeded = amount * idleAgents.length;
-    if (totalNeeded > wallet.balance) {
-      alert(`余额不足，需要 ${totalNeeded}，当前余额 ${wallet.balance}`);
+
+    if (totalAmount > wallet.balance) {
+      alert(`余额不足，需要 ${totalAmount}，当前余额 ${wallet.balance}`);
       return;
     }
-    
-    idleAgents.forEach(agent => {
-      allocateFunds(agent.id, amount);
+
+    // 平均分配给每个 Agent
+    const amountPerAgent = Math.floor(totalAmount / idleAgents.length);
+    const remainder = totalAmount - (amountPerAgent * idleAgents.length);
+
+    idleAgents.forEach((agent, index) => {
+      // 第一个 Agent 获得余数
+      const amount = index === 0 ? amountPerAgent + remainder : amountPerAgent;
+      if (amount > 0) {
+        allocateFunds(agent.id, amount);
+      }
     });
-    
+
     setBatchAmount('');
-    alert(`成功为所有 ${idleAgents.length} 个空闲 Agent 充值 ${amount}`);
+    alert(`成功分配 ${totalAmount} 给 ${idleAgents.length} 个 Agent，每个约 ${amountPerAgent}`);
   };
 
   // 一键让所有 Agents 加入竞技场
@@ -254,15 +269,15 @@ const Squad: React.FC = () => {
                     {selectedAgents.size === 0 ? (
                       /* 全部操作模式 */
                       <div className="space-y-3">
-                        {/* 一键充值 */}
+                        {/* 一键充值 - 平均分配 */}
                         <div className="p-3 bg-void rounded-lg border border-white/5">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 rounded-lg bg-luxury-green flex items-center justify-center">
-                              <BatteryCharging className="w-4 h-4 text-white" />
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-7 h-7 rounded-lg bg-luxury-green flex items-center justify-center">
+                              <BatteryCharging className="w-3.5 h-3.5 text-white" />
                             </div>
                             <div>
                               <p className="text-sm font-medium text-white">一键充值</p>
-                              <p className="text-xs text-white/40">为所有空闲 Agents 充值</p>
+                              <p className="text-[10px] text-white/40">平均分配给所有 {idleAgents.length} 个 Agents</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -270,36 +285,36 @@ const Squad: React.FC = () => {
                               type="number"
                               value={batchAmount}
                               onChange={(e) => setBatchAmount(e.target.value)}
-                              placeholder="输入金额"
-                              className="flex-1 bg-void-panel border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-luxury-green focus:outline-none"
+                              placeholder="总额"
+                              className="w-20 bg-void-panel border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white placeholder:text-white/30 focus:border-luxury-green focus:outline-none"
                             />
                             <button
                               onClick={handleRechargeAll}
                               disabled={!batchAmount || parseFloat(batchAmount) <= 0 || idleAgents.length === 0}
-                              className="px-4 py-2 rounded-lg bg-luxury-green text-white text-sm font-medium hover:bg-luxury-green/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                              className="flex-1 px-3 py-1.5 rounded-lg bg-luxury-green text-white text-sm font-medium hover:bg-luxury-green/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             >
-                              充值 ({idleAgents.length})
+                              充值
                             </button>
                           </div>
                         </div>
 
                         {/* 一键加入 */}
                         <div className="p-3 bg-void rounded-lg border border-white/5">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 rounded-lg bg-luxury-gold flex items-center justify-center">
-                              <Rocket className="w-4 h-4 text-white" />
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-7 h-7 rounded-lg bg-luxury-gold flex items-center justify-center">
+                              <Rocket className="w-3.5 h-3.5 text-white" />
                             </div>
                             <div>
                               <p className="text-sm font-medium text-white">一键加入竞技场</p>
-                              <p className="text-xs text-white/40">将所有符合条件的 Agents 加入</p>
+                              <p className="text-[10px] text-white/40">加入所有有余额的 Agents</p>
                             </div>
                           </div>
                           <button
                             onClick={handleJoinAllArena}
                             disabled={canJoinArena.length === 0}
-                            className="w-full py-2.5 rounded-lg bg-luxury-gold text-white text-sm font-medium hover:bg-luxury-gold/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            className="w-full py-2 rounded-lg bg-luxury-gold text-white text-sm font-medium hover:bg-luxury-gold/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           >
-                            全部加入 ({canJoinArena.length})
+                            加入 ({canJoinArena.length})
                           </button>
                         </div>
                       </div>
@@ -307,21 +322,21 @@ const Squad: React.FC = () => {
                       /* 选择操作模式 */
                       <div className="space-y-3">
                         {/* 选择控制栏 */}
-                        <div className="flex items-center justify-between p-3 bg-void rounded-lg border border-white/5">
+                        <div className="flex items-center justify-between p-2 bg-void rounded-lg border border-white/5">
                           <button
                             onClick={toggleSelectAll}
-                            className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+                            className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors"
                           >
                             {selectedAgents.size === idleAgents.length && idleAgents.length > 0 ? (
                               <CheckSquare className="w-4 h-4 text-luxury-cyan" />
                             ) : (
                               <Square className="w-4 h-4" />
                             )}
-                            <span>全选 ({selectedAgents.size}/{idleAgents.length})</span>
+                            <span className="text-xs">全选 ({selectedAgents.size}/{idleAgents.length})</span>
                           </button>
                           <button
                             onClick={() => setSelectedAgents(new Set())}
-                            className="text-xs text-white/40 hover:text-white/60 transition-colors"
+                            className="text-[10px] text-white/40 hover:text-white/60 transition-colors"
                           >
                             清空
                           </button>
@@ -331,7 +346,7 @@ const Squad: React.FC = () => {
                         <button
                           onClick={handleBatchJoinArena}
                           disabled={selectedAgents.size === 0}
-                          className="w-full py-2.5 rounded-lg bg-luxury-gold text-white text-sm font-medium hover:bg-luxury-gold/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="w-full py-2 rounded-lg bg-luxury-gold text-white text-sm font-medium hover:bg-luxury-gold/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                           加入竞技场 ({selectedAgents.size})
                         </button>
@@ -342,13 +357,13 @@ const Squad: React.FC = () => {
                             type="number"
                             value={batchAmount}
                             onChange={(e) => setBatchAmount(e.target.value)}
-                            placeholder="金额"
-                            className="flex-1 bg-void border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-luxury-green focus:outline-none"
+                            placeholder="总额"
+                            className="w-20 bg-void border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white placeholder:text-white/30 focus:border-luxury-green focus:outline-none"
                           />
                           <button
                             onClick={handleBatchRecharge}
                             disabled={!batchAmount || parseFloat(batchAmount) <= 0}
-                            className="px-4 py-2 rounded-lg bg-luxury-green text-white text-sm font-medium hover:bg-luxury-green/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-luxury-green text-white text-sm font-medium hover:bg-luxury-green/90 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           >
                             充值 ({selectedAgents.size})
                           </button>

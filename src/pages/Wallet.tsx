@@ -46,11 +46,29 @@ const WalletPage: React.FC = () => {
     { id: '5', type: 'deposit', amount: 500, timestamp: Date.now() - 86400000, description: '充值' },
   ];
 
-  // 模拟 NFT 数据
+  // Monad RealNads NFT 数据
   const nfts: NFT[] = [
-    { id: '1', name: '创世徽章', image: '🏆', rarity: 'legendary', value: 5000 },
-    { id: '2', name: '战斗大师', image: '⚔️', rarity: 'epic', value: 2000 },
-    { id: '3', name: '收藏家', image: '🎨', rarity: 'rare', value: 800 },
+    { 
+      id: '1', 
+      name: 'RealNads #001', 
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=monad1&backgroundColor=6366f1', 
+      rarity: 'legendary', 
+      value: 5000 
+    },
+    { 
+      id: '2', 
+      name: 'RealNads #002', 
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=monad2&backgroundColor=f59e0b', 
+      rarity: 'epic', 
+      value: 2000 
+    },
+    { 
+      id: '3', 
+      name: 'RealNads #003', 
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=monad3&backgroundColor=8b5cf6', 
+      rarity: 'rare', 
+      value: 800 
+    },
   ];
   
   const totalAssets = wallet.balance + wallet.lockedBalance;
@@ -113,7 +131,7 @@ const WalletPage: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">请先连接钱包</h2>
             <button
-              onClick={connectWallet}
+              onClick={() => connectWallet('wallet')}
               className="group relative px-8 py-4 rounded-xl overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-luxury-purple via-luxury-purple-light to-luxury-cyan" />
@@ -219,9 +237,15 @@ const WalletPage: React.FC = () => {
               
               <div className="grid grid-cols-3 gap-4">
                 {nfts.map((nft) => (
-                  <div key={nft.id} className="group relative bg-void-light rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${getRarityColor(nft.rarity)} opacity-0 group-hover:opacity-10 rounded-xl transition-opacity`} />
-                    <div className="text-4xl mb-3 text-center">{nft.image}</div>
+                  <div key={nft.id} className="group relative bg-void-light rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${getRarityColor(nft.rarity)} opacity-0 group-hover:opacity-20 rounded-xl transition-opacity`} />
+                    <div className="relative w-full aspect-square mb-3 rounded-lg overflow-hidden bg-void">
+                      <img 
+                        src={nft.image} 
+                        alt={nft.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <p className="text-sm font-medium text-white text-center mb-1">{nft.name}</p>
                     <p className="text-xs text-white/40 text-center capitalize">{nft.rarity}</p>
                     <p className="text-sm font-bold text-luxury-gold font-mono text-center mt-2">{nft.value} $MON</p>
