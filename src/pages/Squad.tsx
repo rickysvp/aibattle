@@ -200,7 +200,7 @@ const Squad: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white font-display">我的小队</h1>
-                <p className="text-white/40">管理你的 AI Agents，铸造新的战士加入战斗</p>
+                <p className="text-white/40 text-lg">管理你的 AI Agents，铸造新的战士加入战斗</p>
               </div>
             </div>
 
