@@ -49,16 +49,24 @@ const Header: React.FC = () => {
             AI<span className="text-gradient">rena</span>
           </h1>
           {/* 平台统计 */}
-          <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-luxury-purple/10 border border-luxury-purple/20">
-              <Users className="w-4 h-4 text-luxury-purple" />
-              <span className="text-xs text-white/60">{t('platform.agents')}</span>
-              <span className="text-sm font-bold text-white font-mono">{(myAgents.length + systemAgents.length).toLocaleString()}</span>
+          <div className="hidden md:flex items-center gap-1 glass rounded-xl px-4 py-2 border border-white/5">
+            <div className="flex items-center gap-3 pr-4 border-r border-white/10">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-luxury-purple/20 to-luxury-cyan/20 border border-luxury-purple/30 flex items-center justify-center">
+                <Users className="w-4 h-4 text-luxury-purple" />
+              </div>
+              <div>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('platform.agents')}</p>
+                <p className="text-sm font-bold text-white font-mono">{(myAgents.length + systemAgents.length).toLocaleString()}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-luxury-gold/10 border border-luxury-gold/20">
-              <Wallet className="w-4 h-4 text-luxury-gold" />
-              <span className="text-xs text-white/60">TVL</span>
-              <span className="text-sm font-bold text-white font-mono">{[...myAgents, ...systemAgents].reduce((sum, a) => sum + a.balance, 0).toLocaleString()} $MON</span>
+            <div className="flex items-center gap-3 pl-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-luxury-gold/20 to-luxury-amber/20 border border-luxury-gold/30 flex items-center justify-center">
+                <Wallet className="w-4 h-4 text-luxury-gold" />
+              </div>
+              <div>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">TVL</p>
+                <p className="text-sm font-bold text-luxury-gold font-mono">{[...myAgents, ...systemAgents].reduce((sum, a) => sum + a.balance, 0).toLocaleString()}</p>
+              </div>
             </div>
           </div>
         </div>
