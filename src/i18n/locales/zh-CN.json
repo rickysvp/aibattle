@@ -60,7 +60,7 @@
     "total": "总计",
     "agents": "个 Agents",
     "noAgents": "还没有 Agent",
-    "mintFirst": "点击上方按钮铸造你的第一个 Agent",
+    "mintFirst": "铸造 Agent",
     "agentName": "Agent 名称",
     "level": "等级",
     "exp": "经验",
@@ -103,6 +103,11 @@
     "noFilteredAgents": "没有符合条件的 Agent",
     "tryOtherFilter": "尝试其他筛选条件",
     "hidden": "未显示"
+  },
+  "battleLog": {
+    "noLogs": "暂无战斗记录",
+    "logsWillAppear": "战斗记录将在这里显示",
+    "damage": "伤害"
   },
   "tournament": {
     "title": "锦标赛",
@@ -226,7 +231,10 @@
     "insufficientBalance": "余额不足，需要",
     "currentBalance": "当前余额",
     "totalAmount": "总额",
-    "recharge": "充值"
+    "recharge": "充值",
+    "mintAgent": "铸造 Agent",
+    "battleWin": "战斗胜利",
+    "battleLoss": "战斗失败"
   },
   "common": {
     "confirm": "确认",

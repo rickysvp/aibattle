@@ -44,23 +44,10 @@ const Header: React.FC = () => {
     >
         <div className="max-w-screen-xl mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            {/* Logo 图标 */}
-            <div className="relative w-12 h-12 bg-gradient-to-br from-void-panel to-void-elevated rounded-xl border border-luxury-purple/30 flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-luxury-purple/20 to-luxury-cyan/20" />
-              <span className="relative text-2xl font-bold text-gradient font-display">A</span>
-
-              {/* 装饰角标 */}
-              <div className="absolute top-0 right-0 w-3 h-3 bg-luxury-gold rounded-bl-lg" />
-            </div>
-          </div>
-
-          <div>
-            <h1 className="text-2xl font-bold font-display text-white tracking-wider">
-              AI<span className="text-gradient">rena</span>
-            </h1>
-          </div>
+        <div className="flex items-center">
+          <h1 className="text-2xl font-bold font-display text-white tracking-wider">
+            AI<span className="text-gradient">rena</span>
+          </h1>
         </div>
 
         {/* 钱包连接 */}

@@ -70,7 +70,7 @@ export default {
         'fade-in': 'fade-in 0.3s ease-out',
         'scale-in': 'scale-in 0.3s ease-out',
         'border-flow': 'border-flow 3s linear infinite',
-        'marquee': 'marquee 30s linear infinite',
+        'marquee': 'marquee 15s linear infinite',
       },
       keyframes: {
         'pulse-glow': {

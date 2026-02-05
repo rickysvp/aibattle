@@ -97,19 +97,19 @@ const WalletPage: React.FC = () => {
   // 模拟交易记录
   const transactions: Transaction[] = [
     { id: '1', type: 'swap', amount: -100, timestamp: Date.now() - 1800000, description: t('wallet.swap'), status: 'completed', txHash: '0x1234...5678' },
-    { id: '2', type: 'mint', amount: -100, timestamp: Date.now() - 3600000, description: 'Mint Agent #1', status: 'completed', txHash: '0xabcd...efgh' },
-    { id: '3', type: 'battle_win', amount: 50, timestamp: Date.now() - 7200000, description: 'Battle Win', status: 'completed' },
-    { id: '4', type: 'battle_loss', amount: -30, timestamp: Date.now() - 10800000, description: 'Battle Loss', status: 'completed' },
+    { id: '2', type: 'mint', amount: -100, timestamp: Date.now() - 3600000, description: t('wallet.mintAgent'), status: 'completed', txHash: '0xabcd...efgh' },
+    { id: '3', type: 'battle_win', amount: 50, timestamp: Date.now() - 7200000, description: t('wallet.battleWin'), status: 'completed' },
+    { id: '4', type: 'battle_loss', amount: -30, timestamp: Date.now() - 10800000, description: t('wallet.battleLoss'), status: 'completed' },
     { id: '5', type: 'deposit', amount: 500, timestamp: Date.now() - 86400000, description: t('wallet.deposit'), status: 'completed', txHash: '0x9876...5432' },
   ];
 
-  // Monad RealNads NFT 数据 - 使用用户提供的图片
+  // Monad RealNads NFT 数据 - 使用本地图片
   const nfts: NFT[] = [
-    { 
-      id: '1', 
-      name: 'Cyber Agent #001', 
-      image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400&h=400&fit=crop', 
-      rarity: 'legendary', 
+    {
+      id: '1',
+      name: 'Cyber Agent #001',
+      image: '/nfts/nft1.png',
+      rarity: 'legendary',
       value: 5000,
       tokenId: '0x1234...5678',
       attributes: [
@@ -120,11 +120,11 @@ const WalletPage: React.FC = () => {
       ],
       obtainedAt: Date.now() - 86400000 * 30
     },
-    { 
-      id: '2', 
-      name: 'Ninja Agent #002', 
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=400&fit=crop', 
-      rarity: 'epic', 
+    {
+      id: '2',
+      name: 'Ninja Agent #002',
+      image: '/nfts/nft2.png',
+      rarity: 'epic',
       value: 2000,
       tokenId: '0xabcd...efgh',
       attributes: [
@@ -135,11 +135,11 @@ const WalletPage: React.FC = () => {
       ],
       obtainedAt: Date.now() - 86400000 * 15
     },
-    { 
-      id: '3', 
-      name: 'Wizard Agent #003', 
-      image: 'https://images.unsplash.com/photo-1634017839464-5c339bbe3c35?w=400&h=400&fit=crop', 
-      rarity: 'rare', 
+    {
+      id: '3',
+      name: 'Wizard Agent #003',
+      image: '/nfts/nft3.png',
+      rarity: 'rare',
       value: 800,
       tokenId: '0x9876...5432',
       attributes: [
@@ -150,11 +150,11 @@ const WalletPage: React.FC = () => {
       ],
       obtainedAt: Date.now() - 86400000 * 7
     },
-    { 
-      id: '4', 
-      name: 'GMONAD Agent #004', 
-      image: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=400&h=400&fit=crop', 
-      rarity: 'epic', 
+    {
+      id: '4',
+      name: 'GMONAD Agent #004',
+      image: '/nfts/nft4.png',
+      rarity: 'epic',
       value: 1500,
       tokenId: '0xdefa...1234',
       attributes: [

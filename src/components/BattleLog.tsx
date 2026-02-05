@@ -1,12 +1,13 @@
 import React, { useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BattleLog as BattleLogType } from '../types';
-import { 
-  Swords, 
-  Skull, 
-  Flame, 
-  Play, 
-  Flag, 
-  UserPlus, 
+import {
+  Swords,
+  Skull,
+  Flame,
+  Play,
+  Flag,
+  UserPlus,
   UserMinus,
   Clock
 } from 'lucide-react';
@@ -18,20 +19,22 @@ interface BattleLogProps {
 }
 
 const BattleLog: React.FC<BattleLogProps> = ({ logs, title, maxHeight = '300px' }) => {
+  const { t, i18n } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
   }, [logs.length]);
-  
+
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('zh-CN', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    const locale = i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US';
+    return date.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   };
   
@@ -109,8 +112,8 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, title, maxHeight = '300px' 
             <div className="w-16 h-16 rounded-2xl bg-void-light/50 border border-white/5 flex items-center justify-center mb-4">
               <Clock className="w-8 h-8 text-white/20" />
             </div>
-            <p className="text-sm text-white/40">暂无战斗记录</p>
-            <p className="text-xs text-white/20 mt-1">战斗记录将在这里显示</p>
+            <p className="text-sm text-white/40">{t('battleLog.noLogs')}</p>
+            <p className="text-xs text-white/20 mt-1">{t('battleLog.logsWillAppear')}</p>
           </div>
         ) : (
           logs.map((log, index) => {
@@ -142,7 +145,7 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, title, maxHeight = '300px' 
                   {log.damage && (
                     <span className="inline-flex items-center gap-1 mt-1 text-xs text-luxury-rose font-mono">
                       <Flame className="w-3 h-3" />
-                      -{log.damage} 伤害
+                      -{log.damage} {t('battleLog.damage')}
                     </span>
                   )}
                 </div>

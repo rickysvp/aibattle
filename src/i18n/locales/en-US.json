@@ -60,7 +60,7 @@
     "total": "Total",
     "agents": "Agents",
     "noAgents": "No Agents yet",
-    "mintFirst": "Click the button above to mint your first Agent",
+    "mintFirst": "Mint Agent",
     "agentName": "Agent Name",
     "level": "Level",
     "exp": "EXP",
@@ -103,6 +103,11 @@
     "noFilteredAgents": "No matching Agents",
     "tryOtherFilter": "Try other filters",
     "hidden": "hidden"
+  },
+  "battleLog": {
+    "noLogs": "No battle logs",
+    "logsWillAppear": "Battle logs will appear here",
+    "damage": "DMG"
   },
   "tournament": {
     "title": "Tournament",
@@ -226,7 +231,10 @@
     "insufficientBalance": "Insufficient balance, need",
     "currentBalance": "Current balance",
     "totalAmount": "Total Amount",
-    "recharge": "Recharge"
+    "recharge": "Recharge",
+    "mintAgent": "Mint Agent",
+    "battleWin": "Battle Win",
+    "battleLoss": "Battle Loss"
   },
   "common": {
     "confirm": "Confirm",

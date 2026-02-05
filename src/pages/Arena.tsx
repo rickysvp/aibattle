@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import ArenaCanvas from '../components/ArenaCanvas';
 import BattleLog from '../components/BattleLog';
@@ -509,12 +510,22 @@ const Arena: React.FC = () => {
             <div className="card-luxury rounded-2xl overflow-hidden">
               {/* Tab 头部 */}
               <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative">
+                  {/* 滑动背景指示器 */}
+                  <motion.div
+                    className="absolute inset-y-1 rounded-lg bg-luxury-purple/20 border border-luxury-purple/30"
+                    initial={false}
+                    animate={{
+                      x: logTab === 'arena' ? 0 : 100,
+                      width: logTab === 'arena' ? 100 : 96
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
                   <button
                     onClick={() => setLogTab('arena')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    className={`relative z-10 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                       logTab === 'arena'
-                        ? 'bg-luxury-purple/20 text-luxury-purple-light border border-luxury-purple/30'
+                        ? 'text-luxury-purple-light'
                         : 'text-white/60 hover:text-white'
                     }`}
                   >
@@ -522,9 +533,9 @@ const Arena: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setLogTab('my')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    className={`relative z-10 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                       logTab === 'my'
-                        ? 'bg-luxury-cyan/20 text-luxury-cyan border border-luxury-cyan/30'
+                        ? 'text-luxury-cyan'
                         : 'text-white/60 hover:text-white'
                     }`}
                   >
@@ -533,15 +544,24 @@ const Arena: React.FC = () => {
                 </div>
 
               </div>
-              
+
               {/* 日志内容 */}
-              <div className="p-4">
-                <BattleLog 
-                  logs={logTab === 'arena' ? arena.battleLogs : myBattleLogs}
-                  title=""
-                  maxHeight="280px"
-                />
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={logTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4"
+                >
+                  <BattleLog
+                    logs={logTab === 'arena' ? arena.battleLogs : myBattleLogs}
+                    title=""
+                    maxHeight="280px"
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
           
