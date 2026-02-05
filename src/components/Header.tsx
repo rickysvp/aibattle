@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { Wallet, LogOut, Zap, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Wallet, LogOut, Zap, Sparkles, Globe, ChevronDown } from 'lucide-react';
 import ConnectWalletModal from './ConnectWalletModal';
+import { languages } from '../i18n';
 
 const Header: React.FC = () => {
   const { wallet, connectWallet, disconnectWallet } = useGameStore();
+  const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showWalletMenu, setShowWalletMenu] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
+
+  const currentLang = languages.find(l => l.code === i18n.language) || languages[0];
+
+  const handleLanguageChange = (code: string) => {
+    i18n.changeLanguage(code);
+    setShowLangMenu(false);
+  };
 
   const handleConnect = (type: 'twitter' | 'google' | 'wallet') => {
     connectWallet(type);
@@ -64,7 +75,39 @@ const Header: React.FC = () => {
         </div>
 
         {/* 钱包连接 */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* 语言切换器 */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className="flex items-center gap-2 glass rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 transition-colors"
+            >
+              <Globe className="w-4 h-4 text-white/60" />
+              <span className="text-sm text-white">{currentLang.flag}</span>
+              <ChevronDown className={`w-3 h-3 text-white/40 transition-transform ${showLangMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* 语言下拉菜单 */}
+            {showLangMenu && (
+              <div className="absolute top-full right-0 mt-2 w-40 glass-strong rounded-xl border border-white/10 p-2 z-50 animate-scale-in">
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                      i18n.language === lang.code
+                        ? 'bg-luxury-cyan/20 text-white'
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-lg">{lang.flag}</span>
+                    <span className="text-sm">{lang.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {wallet.connected ? (
             <>
               {/* 余额显示卡片 */}
@@ -74,7 +117,7 @@ const Header: React.FC = () => {
                     <Zap className="w-4 h-4 text-luxury-gold" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-white/40 uppercase tracking-wider">Balance</p>
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('header.balance')}</p>
                     <p className="text-sm font-bold text-luxury-gold font-mono">{wallet.balance.toLocaleString()}</p>
                   </div>
                 </div>
@@ -84,7 +127,7 @@ const Header: React.FC = () => {
                     <Sparkles className="w-4 h-4 text-luxury-purple-light" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-white/40 uppercase tracking-wider">Locked</p>
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('header.locked')}</p>
                     <p className="text-sm font-bold text-luxury-purple-light font-mono">{wallet.lockedBalance.toLocaleString()}</p>
                   </div>
                 </div>
@@ -130,11 +173,11 @@ const Header: React.FC = () => {
                     {/* 余额信息 */}
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/40">Balance</span>
+                        <span className="text-white/40">{t('header.balance')}</span>
                         <span className="text-luxury-gold font-mono">{wallet.balance.toLocaleString()} $MON</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/40">Locked</span>
+                        <span className="text-white/40">{t('header.locked')}</span>
                         <span className="text-luxury-purple-light font-mono">{wallet.lockedBalance.toLocaleString()} $MON</span>
                       </div>
                     </div>
@@ -148,7 +191,7 @@ const Header: React.FC = () => {
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-luxury-rose/10 border border-luxury-rose/30 text-luxury-rose hover:bg-luxury-rose/20 transition-colors text-sm font-medium"
                     >
                       <LogOut className="w-4 h-4" />
-                      Disconnect
+                      {t('header.disconnect')}
                     </button>
                   </div>
                 )}
@@ -168,7 +211,7 @@ const Header: React.FC = () => {
               {/* 内容 */}
               <span className="relative flex items-center gap-2 text-white font-semibold font-display tracking-wide">
                 <Wallet className="w-5 h-5" />
-                Connect
+                {t('header.connect')}
               </span>
             </button>
           )}

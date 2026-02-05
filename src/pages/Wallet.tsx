@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../store/gameStore';
 import { 
   Wallet, 
@@ -69,6 +70,7 @@ const MON_TO_USDT_RATE = 0.052;
 const MON_PRICE_CHANGE_24H = 5.23;
 
 const WalletPage: React.FC = () => {
+  const { t } = useTranslation();
   const { wallet, myAgents, connectWallet, disconnectWallet } = useGameStore();
   
   // 弹窗状态
@@ -88,17 +90,17 @@ const WalletPage: React.FC = () => {
   
   // Toast通知
   const [toast, setToast] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
-  
+
   // 加载状态
   const [isLoading, setIsLoading] = useState<{[key: string]: boolean}>({});
-  
+
   // 模拟交易记录
   const transactions: Transaction[] = [
-    { id: '1', type: 'swap', amount: -100, timestamp: Date.now() - 1800000, description: 'SWAP: ETH → $MON', status: 'completed', txHash: '0x1234...5678' },
-    { id: '2', type: 'mint', amount: -100, timestamp: Date.now() - 3600000, description: '铸造 Agent #1', status: 'completed', txHash: '0xabcd...efgh' },
-    { id: '3', type: 'battle_win', amount: 50, timestamp: Date.now() - 7200000, description: '战斗胜利奖励', status: 'completed' },
-    { id: '4', type: 'battle_loss', amount: -30, timestamp: Date.now() - 10800000, description: '战斗失败损失', status: 'completed' },
-    { id: '5', type: 'deposit', amount: 500, timestamp: Date.now() - 86400000, description: '充值', status: 'completed', txHash: '0x9876...5432' },
+    { id: '1', type: 'swap', amount: -100, timestamp: Date.now() - 1800000, description: t('wallet.swap'), status: 'completed', txHash: '0x1234...5678' },
+    { id: '2', type: 'mint', amount: -100, timestamp: Date.now() - 3600000, description: 'Mint Agent #1', status: 'completed', txHash: '0xabcd...efgh' },
+    { id: '3', type: 'battle_win', amount: 50, timestamp: Date.now() - 7200000, description: 'Battle Win', status: 'completed' },
+    { id: '4', type: 'battle_loss', amount: -30, timestamp: Date.now() - 10800000, description: 'Battle Loss', status: 'completed' },
+    { id: '5', type: 'deposit', amount: 500, timestamp: Date.now() - 86400000, description: t('wallet.deposit'), status: 'completed', txHash: '0x9876...5432' },
   ];
 
   // Monad RealNads NFT 数据
@@ -222,12 +224,12 @@ const WalletPage: React.FC = () => {
 
   const copyAddress = () => {
     navigator.clipboard.writeText(wallet.address);
-    showToast('地址已复制', 'success');
+    showToast(t('wallet.copied'), 'success');
   };
-  
+
   const copyInviteCode = () => {
     navigator.clipboard.writeText('AI2024VIP');
-    showToast('邀请码已复制', 'success');
+    showToast(t('wallet.copied'), 'success');
   };
 
   // 筛选交易记录
@@ -249,35 +251,35 @@ const WalletPage: React.FC = () => {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div className="bg-void-panel rounded-2xl w-full max-w-md p-6 border border-white/10">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-white">充值</h3>
+            <h3 className="text-xl font-bold text-white">{t('wallet.deposit')}</h3>
             <button onClick={() => setShowDepositModal(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
               <X className="w-5 h-5 text-white/60" />
             </button>
           </div>
-          
+
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-white/60 mb-2 block">选择网络</label>
+              <label className="text-sm text-white/60 mb-2 block">{t('wallet.network')}</label>
               <div className="grid grid-cols-2 gap-2">
-                <button 
+                <button
                   onClick={() => setSelectedNetwork('monad')}
                   className={`p-3 rounded-xl border transition-all ${selectedNetwork === 'monad' ? 'bg-luxury-cyan/20 border-luxury-cyan' : 'border-white/10 hover:border-white/30'}`}
                 >
-                  <p className="text-sm font-medium text-white">Monad Testnet</p>
-                  <p className="text-xs text-white/40">推荐</p>
+                  <p className="text-sm font-medium text-white">{t('wallet.monadTestnet')}</p>
+                  <p className="text-xs text-white/40">{t('wallet.recommended')}</p>
                 </button>
-                <button 
+                <button
                   onClick={() => setSelectedNetwork('ethereum')}
                   className={`p-3 rounded-xl border transition-all ${selectedNetwork === 'ethereum' ? 'bg-luxury-cyan/20 border-luxury-cyan' : 'border-white/10 hover:border-white/30'}`}
                 >
-                  <p className="text-sm font-medium text-white">Ethereum</p>
-                  <p className="text-xs text-white/40">主网</p>
+                  <p className="text-sm font-medium text-white">{t('wallet.ethereum')}</p>
+                  <p className="text-xs text-white/40">Mainnet</p>
                 </button>
               </div>
             </div>
-            
+
             <div className="bg-void rounded-xl p-4 border border-white/10">
-              <label className="text-sm text-white/60 mb-2 block">充值地址</label>
+              <label className="text-sm text-white/60 mb-2 block">{t('wallet.depositAddress')}</label>
               <div className="flex items-center gap-2 mb-3">
                 <code className="flex-1 text-sm text-luxury-cyan font-mono bg-void-light px-3 py-2 rounded-lg truncate">
                   {wallet.address}
