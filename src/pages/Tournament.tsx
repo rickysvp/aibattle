@@ -570,7 +570,7 @@ const Tournament: React.FC = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-luxury-green" />
-                      {t('tournament.req.minBalance')}
+                      {t('tournament.req.walletBalance')}
                     </li>
                     {selectedTournament.type === 'daily' && (
                       <li className="flex items-center gap-2">

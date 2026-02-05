@@ -142,7 +142,7 @@
     "noQualifiedAgents": "没有符合条件的Agent",
     "req": {
       "notInArena": "Agent不在竞技场中",
-      "minBalance": "余额 >= 100 MON",
+      "walletBalance": "钱包余额 >= 报名费",
       "challengeChampion": "24小时内挑战赛冠军",
       "sundayChampion": "本周日冠军"
     },

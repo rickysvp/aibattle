@@ -745,14 +745,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return { success: false, message: 'Agent is currently in arena. Please remove from arena first.' };
     }
 
-    // 检查余额
-    if (agent.balance < 100) {
-      return { success: false, message: 'Agent balance must be at least 100 MON' };
-    }
-
-    // 检查报名费
+    // 检查钱包余额是否足够支付报名费
     if (wallet.balance < tournament.entryFee) {
-      return { success: false, message: `Insufficient balance for entry fee (${tournament.entryFee} MON)` };
+      return { success: false, message: `Insufficient wallet balance for entry fee (${tournament.entryFee} MON). Current: ${wallet.balance} MON` };
     }
 
     // 检查资格赛要求
@@ -814,14 +809,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (!tournamentAutoSettings.enabled || !wallet.connected) return;
 
-    // 获取符合条件的Agent（不在竞技场且余额>100）
-    const { arena } = get();
-    const eligibleAgents = myAgents.filter(
-      (a) => !arena.participants.some((p) => p.id === a.id) && a.balance >= 100
-    );
-
-    if (eligibleAgents.length === 0) return;
-
     // 对每种锦标赛类型进行自动报名
     tournaments.forEach((tournament) => {
       if (tournament.status !== 'registration' && tournament.status !== 'upcoming') return;
@@ -829,6 +816,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       const typeSettings = tournamentAutoSettings[tournament.type];
       if (!typeSettings?.enabled) return;
+
+      // 检查钱包余额是否足够
+      if (wallet.balance < tournament.entryFee) return;
+
+      // 获取符合条件的Agent（不在竞技场）
+      const { arena } = get();
+      const eligibleAgents = myAgents.filter(
+        (a) => !arena.participants.some((p) => p.id === a.id)
+      );
+
+      if (eligibleAgents.length === 0) return;
 
       // 选择Agent
       let selectedAgent: Agent | undefined;
@@ -1084,13 +1082,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // 获取有资格报名的Agent
   getQualifiedAgentsForTournament: (tournamentId: string) => {
-    const { tournaments, myAgents, tournamentHistory, arena } = get();
+    const { tournaments, myAgents, tournamentHistory, arena, wallet } = get();
     const tournament = tournaments.find((t) => t.id === tournamentId);
     if (!tournament) return [];
 
-    // 基础条件：不在竞技场且余额>100
+    // 基础条件：不在竞技场且钱包余额足够支付报名费
     let qualified = myAgents.filter(
-      (a) => !arena.participants.some((p) => p.id === a.id) && a.balance >= 100
+      (a) => !arena.participants.some((p) => p.id === a.id) && wallet.balance >= tournament.entryFee
     );
 
     // 根据类型添加额外条件

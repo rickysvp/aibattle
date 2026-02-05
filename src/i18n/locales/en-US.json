@@ -142,7 +142,7 @@
     "noQualifiedAgents": "No qualified agents",
     "req": {
       "notInArena": "Agent not in arena",
-      "minBalance": "Balance >= 100 MON",
+      "walletBalance": "Wallet balance >= entry fee",
       "challengeChampion": "Challenge champion (24h)",
       "sundayChampion": "Sunday champion"
     },
