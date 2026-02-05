@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import ArenaCanvas from '../components/ArenaCanvas';
 import BattleLog from '../components/BattleLog';
@@ -6,6 +6,18 @@ import AgentCard from '../components/AgentCard';
 import { Agent } from '../types';
 import { Swords, Users, Trophy, Zap, TrendingUp, Plus, Wallet, Sparkles, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// 战斗阶段类型
+type BattlePhase = 'idle' | 'selecting' | 'countdown' | 'fighting' | 'settlement' | 'waiting';
+
+// 计时器状态
+interface TimerState {
+  phase: BattlePhase;
+  countdown: number;
+  round: number;
+  participants: Agent[];
+  selectedSlots: number[];
+}
 
 const Arena: React.FC = () => {
   const { 
@@ -25,12 +37,54 @@ const Arena: React.FC = () => {
   const navigate = useNavigate();
   const [logTab, setLogTab] = useState<'arena' | 'my'>('arena');
   const [showSettlement, setShowSettlement] = useState(false);
-  const [currentRound, setCurrentRound] = useState(1);
   
-  // 使用 ref 来跟踪状态，避免闭包问题
-  const roundRef = useRef(1);
-  const isRunningRef = useRef(false);
-  const hasInitializedRef = useRef(false);
+  // 使用 ref 来管理计时器状态，避免闭包问题
+  const timerStateRef = useRef<TimerState>({
+    phase: 'idle',
+    countdown: 0,
+    round: 0,
+    participants: [],
+    selectedSlots: [],
+  });
+  
+  // 用于强制重新渲染的 state
+  const [, forceUpdate] = useState({});
+  
+  // 同步 ref 状态到 store
+  const syncPhaseToStore = useCallback((phase: BattlePhase) => {
+    timerStateRef.current.phase = phase;
+    setArenaPhase(phase);
+    forceUpdate({}); // 触发重新渲染
+  }, [setArenaPhase]);
+  
+  const syncCountdownToStore = useCallback((countdown: number) => {
+    timerStateRef.current.countdown = countdown;
+    useGameStore.setState(state => ({
+      arena: { ...state.arena, countdown }
+    }));
+    forceUpdate({}); // 触发重新渲染
+  }, []);
+  
+  const syncParticipantsToStore = useCallback((participants: Agent[]) => {
+    timerStateRef.current.participants = participants;
+    useGameStore.setState(state => ({
+      arena: { ...state.arena, participants }
+    }));
+    forceUpdate({}); // 触发重新渲染
+  }, []);
+  
+  const syncSelectedSlotsToStore = useCallback((selectedSlots: number[]) => {
+    timerStateRef.current.selectedSlots = selectedSlots;
+    useGameStore.setState(state => ({
+      arena: { ...state.arena, selectedSlots }
+    }));
+    forceUpdate({}); // 触发重新渲染
+  }, []);
+  
+  const incrementRound = useCallback(() => {
+    timerStateRef.current.round += 1;
+    forceUpdate({}); // 触发重新渲染
+  }, []);
   
   // 初始化竞技场
   useEffect(() => {
@@ -39,27 +93,21 @@ const Arena: React.FC = () => {
     }
   }, [initializeArena, systemAgents.length]);
   
-  // 战斗循环 - 只在组件挂载时启动一次
+  // 战斗循环
   useEffect(() => {
-    // 防止重复启动
-    if (isRunningRef.current || hasInitializedRef.current) return;
     if (systemAgents.length === 0) return;
     
-    hasInitializedRef.current = true;
-    isRunningRef.current = true;
+    let isActive = true;
     
     const runBattleLoop = async () => {
-      // 等待一小段时间确保初始化完成
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 初始等待
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      while (isRunningRef.current) {
-        // 1. 准备阶段 - 选择参赛者
-        setArenaPhase('selecting');
+      while (isActive) {
+        // ===== 1. 准备阶段 - 选择参赛者 =====
+        syncPhaseToStore('selecting');
         startNewRound();
-        
-        // 更新 round 数
-        roundRef.current += 1;
-        setCurrentRound(roundRef.current);
+        incrementRound();
         
         // 获取当前最新的 agents 状态
         const currentState = useGameStore.getState();
@@ -74,6 +122,7 @@ const Arena: React.FC = () => {
         
         // 如果没有足够的参赛者，等待后重试
         if (availableAgents.length < 2) {
+          console.log('等待更多参赛者...');
           await new Promise(resolve => setTimeout(resolve, 3000));
           continue;
         }
@@ -86,59 +135,47 @@ const Arena: React.FC = () => {
           updateParticipant(p.id, { hp: p.maxHp, status: 'fighting' });
         });
         
-        useGameStore.setState(state => ({
-          arena: { 
-            ...state.arena, 
-            participants,
-            selectedSlots: [],
-            countdown: 3
-          }
-        }));
+        // 同步参赛者到 store
+        syncParticipantsToStore(participants);
+        syncSelectedSlotsToStore([]);
         
-        // 使用 ref 获取最新的 round 数
+        // 记录日志
         addBattleLog({
           type: 'round_start',
-          message: `第 ${roundRef.current} 轮开始！${participants.length} 名选手参战`,
+          message: `第 ${timerStateRef.current.round} 轮开始！${participants.length} 名选手参战`,
           isHighlight: true,
         });
         
-        // 2. 逐个点亮坑位 (3秒内完成)
+        // ===== 2. 逐个点亮坑位 (3秒) =====
         const slotInterval = 3000 / participants.length;
         for (let i = 0; i < participants.length; i++) {
-          if (!isRunningRef.current) return;
+          if (!isActive) return;
           await new Promise(resolve => setTimeout(resolve, slotInterval));
-          useGameStore.setState(state => ({
-            arena: { ...state.arena, selectedSlots: [...state.arena.selectedSlots, i] }
-          }));
+          syncSelectedSlotsToStore([...timerStateRef.current.selectedSlots, i]);
         }
         
-        // 3. 倒计时阶段 (3秒)
-        setArenaPhase('countdown');
+        // ===== 3. 倒计时阶段 (3秒) =====
+        syncPhaseToStore('countdown');
+        syncCountdownToStore(3);
+        
         for (let i = 3; i > 0; i--) {
-          if (!isRunningRef.current) return;
-          useGameStore.setState(state => ({
-            arena: { ...state.arena, countdown: i }
-          }));
+          if (!isActive) return;
+          syncCountdownToStore(i);
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
         
-        // 4. 战斗阶段 (10秒)
-        setArenaPhase('fighting');
-        useGameStore.setState(state => ({
-          arena: { ...state.arena, countdown: 10 }
-        }));
+        // ===== 4. 战斗阶段 (10秒) =====
+        syncPhaseToStore('fighting');
+        syncCountdownToStore(10);
         
-        // 战斗倒计时
         for (let i = 10; i > 0; i--) {
-          if (!isRunningRef.current) return;
-          useGameStore.setState(state => ({
-            arena: { ...state.arena, countdown: i }
-          }));
+          if (!isActive) return;
+          syncCountdownToStore(i);
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
         
-        // 5. 结算阶段
-        setArenaPhase('settlement');
+        // ===== 5. 结算阶段 =====
+        syncPhaseToStore('settlement');
         
         // 计算结果
         const currentParticipants = useGameStore.getState().arena.participants;
@@ -159,7 +196,7 @@ const Arena: React.FC = () => {
         
         addBattleLog({
           type: 'round_end',
-          message: `第 ${roundRef.current} 轮结束！冠军: ${top3[0]?.agent.name || '无'}`,
+          message: `第 ${timerStateRef.current.round} 轮结束！冠军: ${top3[0]?.agent.name || '无'}`,
           isHighlight: true,
         });
         
@@ -169,24 +206,22 @@ const Arena: React.FC = () => {
           updateParticipant(p.id, { status: newStatus, hp: p.maxHp });
         });
         
-        // 等待5秒或用户关闭弹窗
+        // 等待5秒
         await new Promise(resolve => setTimeout(resolve, 5000));
         setShowSettlement(false);
         
-        // 短暂等待后开始下一轮
-        setArenaPhase('waiting');
+        // ===== 6. 等待阶段 =====
+        syncPhaseToStore('waiting');
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     };
     
-    // 启动战斗循环
     runBattleLoop();
     
-    // 清理函数
     return () => {
-      isRunningRef.current = false;
+      isActive = false;
     };
-  }, []); // 空依赖数组，只在组件挂载时执行一次
+  }, [systemAgents.length]); // 只在 systemAgents 初始化后执行一次
   
   // 我的在竞技场的 Agents
   const myArenaAgents = myAgents.filter(a => a.status === 'in_arena' || a.status === 'fighting');
@@ -200,6 +235,13 @@ const Arena: React.FC = () => {
     }
     navigate('/squad');
   };
+
+  // 使用 ref 中的状态传递给子组件
+  const currentPhase = timerStateRef.current.phase;
+  const currentCountdown = timerStateRef.current.countdown;
+  const currentRound = timerStateRef.current.round;
+  const currentParticipants = timerStateRef.current.participants;
+  const currentSelectedSlots = timerStateRef.current.selectedSlots;
 
   return (
     <div className="min-h-screen bg-void pt-24 pb-24">
@@ -234,10 +276,10 @@ const Arena: React.FC = () => {
               </div>
               <div className="aspect-video p-4 relative">
                 <ArenaCanvas 
-                  participants={arena.participants}
-                  phase={arena.phase}
-                  countdown={arena.countdown}
-                  selectedSlots={arena.selectedSlots}
+                  participants={currentParticipants}
+                  phase={currentPhase}
+                  countdown={currentCountdown}
+                  selectedSlots={currentSelectedSlots}
                 />
                 
                 {/* 结算弹窗 */}
