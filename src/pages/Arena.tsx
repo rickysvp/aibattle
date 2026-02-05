@@ -539,42 +539,42 @@ const Arena: React.FC = () => {
             
             {/* 战斗日志 - Tab 切换 */}
             <div className="card-luxury rounded-2xl overflow-hidden">
-              {/* Tab 头部 - 新设计 */}
-              <div className="px-6 py-4 border-b border-white/5">
-                <div className="flex items-center gap-1 relative bg-void-light/30 rounded-2xl p-1.5 w-fit">
-                  {/* 滑动背景指示器 - 玻璃态 */}
+              {/* Tab 头部 - 简化设计 */}
+              <div className="px-6 py-3 border-b border-white/5">
+                <div className="flex items-center gap-1 relative bg-void-light/20 rounded-xl p-1 w-fit">
+                  {/* 滑动背景指示器 - 简化 */}
                   <motion.div
-                    className="absolute inset-y-1.5 rounded-xl bg-gradient-to-r from-luxury-purple/40 to-luxury-cyan/30 backdrop-blur-sm border border-white/10 shadow-lg shadow-luxury-purple/20"
+                    className="absolute inset-y-1 rounded-lg bg-luxury-purple/20"
                     initial={false}
                     animate={{
-                      x: logTab === 'arena' ? 0 : 108,
-                      width: 108
+                      x: logTab === 'arena' ? 0 : 100,
+                      width: 100
                     }}
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                   <button
                     onClick={() => setLogTab('arena')}
-                    className={`relative z-10 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    className={`relative z-10 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       logTab === 'arena'
-                        ? 'text-white shadow-lg'
-                        : 'text-white/40 hover:text-white/70'
+                        ? 'text-white'
+                        : 'text-white/50 hover:text-white/80'
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <Swords className={`w-4 h-4 transition-all duration-300 ${logTab === 'arena' ? 'scale-110' : 'scale-100'}`} />
+                      <Swords className="w-4 h-4" />
                       BATTLE LOG
                     </span>
                   </button>
                   <button
                     onClick={() => setLogTab('my')}
-                    className={`relative z-10 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    className={`relative z-10 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       logTab === 'my'
-                        ? 'text-white shadow-lg'
-                        : 'text-white/40 hover:text-white/70'
+                        ? 'text-white'
+                        : 'text-white/50 hover:text-white/80'
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <Users className={`w-4 h-4 transition-all duration-300 ${logTab === 'my' ? 'scale-110' : 'scale-100'}`} />
+                      <Users className="w-4 h-4" />
                       SQUAD LOG
                     </span>
                   </button>
