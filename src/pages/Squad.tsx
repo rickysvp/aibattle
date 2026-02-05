@@ -209,40 +209,48 @@ const Squad: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowBatchPanel(!showBatchPanel)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all ${
                     showBatchPanel
-                      ? 'bg-luxury-cyan/20 border-luxury-cyan/50 text-luxury-cyan'
-                      : 'bg-void-light border-white/10 text-white/60 hover:text-white hover:border-white/30'
+                      ? 'bg-luxury-cyan border-luxury-cyan text-white shadow-lg shadow-luxury-cyan/30'
+                      : 'bg-void-panel border-white/20 text-white hover:border-luxury-cyan/50 hover:text-luxury-cyan'
                   }`}
                 >
                   <Zap className="w-4 h-4" />
-                  <span className="text-sm font-medium">批量操作</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${showBatchPanel ? 'bg-luxury-cyan/20' : 'bg-white/10'}`}>
+                  <span className="text-sm font-bold">批量操作</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${showBatchPanel ? 'bg-white/20' : 'bg-white/10'}`}>
                     {showBatchPanel ? '收起' : '展开'}
                   </span>
                 </button>
 
                 {/* 批量操作下拉面板 */}
                 {showBatchPanel && (
-                  <div className="absolute top-full right-0 mt-2 w-80 card-luxury rounded-2xl border border-luxury-cyan/20 p-4 z-50 animate-scale-in">
+                  <div className="absolute top-full right-0 mt-2 w-72 bg-void-panel rounded-xl border-2 border-luxury-cyan/40 p-4 z-50 shadow-2xl shadow-black/50">
+                    {/* 标题 */}
+                    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+                      <Zap className="w-4 h-4 text-luxury-cyan" />
+                      <span className="text-sm font-bold text-white">批量操作</span>
+                    </div>
+
                     {/* 一键充值所有 */}
-                    <div className="p-3 bg-luxury-green/5 rounded-xl border border-luxury-green/20 mb-3">
+                    <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <BatteryCharging className="w-4 h-4 text-luxury-green" />
-                        <span className="text-sm font-medium text-white">一键充值所有</span>
+                        <div className="w-6 h-6 rounded-lg bg-luxury-green flex items-center justify-center">
+                          <BatteryCharging className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-white/80">一键充值所有</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
                           value={batchAmount}
                           onChange={(e) => setBatchAmount(e.target.value)}
-                          placeholder="金额"
-                          className="flex-1 bg-void-light border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:border-luxury-green focus:outline-none"
+                          placeholder="输入金额"
+                          className="flex-1 bg-void border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-luxury-green focus:outline-none"
                         />
                         <button
                           onClick={handleRechargeAll}
                           disabled={!batchAmount || parseFloat(batchAmount) <= 0 || idleAgents.length === 0}
-                          className="px-3 py-1.5 rounded-lg bg-luxury-green/20 border border-luxury-green/40 text-luxury-green hover:bg-luxury-green/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium whitespace-nowrap"
+                          className="px-4 py-2 rounded-lg bg-luxury-green text-white font-medium hover:bg-luxury-green/90 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed transition-colors text-xs whitespace-nowrap"
                         >
                           充值 ({idleAgents.length})
                         </button>
@@ -250,47 +258,49 @@ const Squad: React.FC = () => {
                     </div>
 
                     {/* 一键加入竞技场 */}
-                    <div className="p-3 bg-luxury-gold/5 rounded-xl border border-luxury-gold/20 mb-3">
+                    <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <Rocket className="w-4 h-4 text-luxury-gold" />
-                        <span className="text-sm font-medium text-white">一键加入竞技场</span>
+                        <div className="w-6 h-6 rounded-lg bg-luxury-gold flex items-center justify-center">
+                          <Rocket className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-white/80">一键加入竞技场</span>
                       </div>
                       <button
                         onClick={handleJoinAllArena}
                         disabled={canJoinArena.length === 0}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-luxury-gold/20 border border-luxury-gold/40 text-luxury-gold hover:bg-luxury-gold/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-luxury-gold text-white font-medium hover:bg-luxury-gold/90 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed transition-colors text-xs"
                       >
-                        <LogIn className="w-3 h-3" />
+                        <LogIn className="w-3.5 h-3.5" />
                         全部加入 ({canJoinArena.length})
                       </button>
                     </div>
 
                     {/* 分隔线 */}
-                    <div className="h-px bg-white/10 my-3" />
+                    <div className="h-px bg-white/20 my-4" />
 
                     {/* 选择操作区域 */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-3">
                         <button
                           onClick={toggleSelectAll}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-void-light border border-white/10 text-white/60 hover:text-white transition-colors text-xs"
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-void border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-colors text-xs"
                         >
                           {selectedAgents.size === idleAgents.length && idleAgents.length > 0 ? (
-                            <CheckSquare className="w-3 h-3 text-luxury-cyan" />
+                            <CheckSquare className="w-4 h-4 text-luxury-cyan" />
                           ) : (
-                            <Square className="w-3 h-3" />
+                            <Square className="w-4 h-4" />
                           )}
-                          <span>全选 ({selectedAgents.size}/{idleAgents.length})</span>
+                          <span className="font-medium">全选 ({selectedAgents.size}/{idleAgents.length})</span>
                         </button>
                         
                         <button
                           onClick={handleBatchJoinArena}
                           disabled={selectedAgents.size === 0}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-luxury-cyan/10 border border-luxury-cyan/30 text-luxury-cyan hover:bg-luxury-cyan/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-luxury-cyan text-white font-medium hover:bg-luxury-cyan/90 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed transition-colors text-xs"
                         >
-                          <LogIn className="w-3 h-3" />
+                          <LogIn className="w-3.5 h-3.5" />
                           <span>加入</span>
-                          <span className="bg-luxury-cyan/20 px-1.5 py-0.5 rounded-full text-[10px]">
+                          <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[10px] font-bold">
                             {selectedAgents.size}
                           </span>
                         </button>
@@ -298,19 +308,21 @@ const Squad: React.FC = () => {
                       
                       {/* 批量充值（选中） */}
                       {selectedAgents.size > 0 && (
-                        <div className="flex items-center gap-2 p-2 bg-void-light/50 rounded-lg border border-white/5 animate-slide-up">
-                          <Coins className="w-3 h-3 text-white/40" />
+                        <div className="flex items-center gap-2 p-3 bg-void rounded-lg border border-white/10">
+                          <div className="w-6 h-6 rounded bg-luxury-cyan/20 flex items-center justify-center">
+                            <Coins className="w-3 h-3 text-luxury-cyan" />
+                          </div>
                           <input
                             type="number"
                             value={batchAmount}
                             onChange={(e) => setBatchAmount(e.target.value)}
                             placeholder="金额"
-                            className="flex-1 bg-void-light border border-white/10 rounded px-2 py-1 text-xs text-white placeholder:text-white/30 focus:border-luxury-cyan focus:outline-none"
+                            className="flex-1 bg-void-panel border border-white/20 rounded px-3 py-1.5 text-sm text-white placeholder:text-white/40 focus:border-luxury-cyan focus:outline-none"
                           />
                           <button
                             onClick={handleBatchRecharge}
                             disabled={!batchAmount || parseFloat(batchAmount) <= 0}
-                            className="px-2 py-1 rounded bg-luxury-cyan/10 border border-luxury-cyan/30 text-luxury-cyan hover:bg-luxury-cyan/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
+                            className="px-3 py-1.5 rounded bg-luxury-cyan text-white font-medium hover:bg-luxury-cyan/90 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed transition-colors text-xs"
                           >
                             充值
                           </button>
