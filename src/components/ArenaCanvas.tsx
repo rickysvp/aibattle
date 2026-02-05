@@ -297,7 +297,7 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
         const isLit = phase === 'selecting' && isSelected;
         const isAttacking = participant && attackingAgents.has(participant.id);
         const isHurt = participant && hurtAgents.has(participant.id);
-        const isDead = participant && participant.hp <= 0;
+        const isDead = participant && participant.balance <= 0;
         const isMyAgent = participant?.isPlayer;
         const isJustSeated = phase === 'selecting' && isSelected && participant;
 
