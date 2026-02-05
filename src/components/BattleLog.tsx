@@ -98,16 +98,6 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, title, maxHeight = '300px' 
 
   return (
     <div className="card-luxury rounded-2xl overflow-hidden">
-      {/* 标题栏 */}
-      <div className="px-5 py-4 border-b border-white/5 bg-gradient-to-r from-void-panel/50 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-luxury-purple/20 to-luxury-cyan/20 border border-luxury-purple/30 flex items-center justify-center">
-            <Clock className="w-4 h-4 text-luxury-purple-light" />
-          </div>
-          <h3 className="text-sm font-semibold text-white tracking-wide">{title}</h3>
-        </div>
-      </div>
-      
       {/* 日志列表 */}
       <div 
         ref={scrollRef}
