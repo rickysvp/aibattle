@@ -380,8 +380,8 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
         </div>
       ))}
       
-      {/* 倒计时显示 */}
-      {(phase === 'countdown' || phase === 'selecting') && countdown > 0 && (
+      {/* 倒计时显示 - 只在 countdown 阶段显示 */}
+      {phase === 'countdown' && countdown > 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-void/80 backdrop-blur-sm z-40">
           <div className="text-center">
             <div 
@@ -394,7 +394,26 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
               {countdown}
             </div>
             <div className="text-lg text-white/60 mt-6 font-medium tracking-wide">
-              {phase === 'selecting' ? '正在选择参赛者...' : '战斗即将开始'}
+              战斗即将开始
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 选择参赛者提示 */}
+      {phase === 'selecting' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-void/60 backdrop-blur-sm z-40">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-3 h-3 bg-luxury-gold rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-3 h-3 bg-luxury-gold rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-3 h-3 bg-luxury-gold rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <div className="text-2xl font-bold text-luxury-gold font-display">
+              正在选择参赛者
+            </div>
+            <div className="text-sm text-white/40 mt-2">
+              随机抽取 10 名选手
             </div>
           </div>
         </div>
