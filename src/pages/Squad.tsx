@@ -2,14 +2,42 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import AgentCard from '../components/AgentCard';
 import PixelAgent from '../components/PixelAgent';
-import { Users, Plus, Filter, Sparkles, TrendingUp, Skull, Swords, Wallet } from 'lucide-react';
+import { 
+  Users, 
+  Plus, 
+  Filter, 
+  Sparkles, 
+  TrendingUp, 
+  Skull, 
+  Swords, 
+  Wallet,
+  Zap,
+  Coins,
+  CheckSquare,
+  Square,
+  LogIn,
+  ArrowRight
+} from 'lucide-react';
 
 const Squad: React.FC = () => {
-  const { wallet, myAgents, mintAgent, mintCost } = useGameStore();
+  const { 
+    wallet, 
+    myAgents, 
+    mintAgent, 
+    mintCost,
+    allocateFunds,
+    joinArena
+  } = useGameStore();
+  
   const [mintCount, setMintCount] = useState(1);
   const [filter, setFilter] = useState<'all' | 'idle' | 'in_arena' | 'fighting'>('all');
   const [isMinting, setIsMinting] = useState(false);
   const [newAgent, setNewAgent] = useState<ReturnType<typeof mintAgent>>(null);
+  
+  // 批量操作状态
+  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
+  const [batchAmount, setBatchAmount] = useState('');
+  const [showBatchPanel, setShowBatchPanel] = useState(false);
   
   const handleMint = async () => {
     if (!wallet.connected || wallet.balance < mintCost * mintCount) return;
@@ -29,10 +57,80 @@ const Squad: React.FC = () => {
     setIsMinting(false);
   };
   
+  // 切换 Agent 选择
+  const toggleAgentSelection = (agentId: string) => {
+    setSelectedAgents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(agentId)) {
+        newSet.delete(agentId);
+      } else {
+        newSet.add(agentId);
+      }
+      return newSet;
+    });
+  };
+  
+  // 全选/取消全选
+  const toggleSelectAll = () => {
+    const idleAgentIds = idleAgents.map(a => a.id);
+    if (selectedAgents.size === idleAgentIds.length) {
+      setSelectedAgents(new Set());
+    } else {
+      setSelectedAgents(new Set(idleAgentIds));
+    }
+  };
+  
+  // 批量充值
+  const handleBatchRecharge = () => {
+    const amount = parseFloat(batchAmount);
+    if (!amount || amount <= 0) return;
+    
+    const totalNeeded = amount * selectedAgents.size;
+    if (totalNeeded > wallet.balance) {
+      alert(`余额不足，需要 ${totalNeeded}，当前余额 ${wallet.balance}`);
+      return;
+    }
+    
+    selectedAgents.forEach(agentId => {
+      allocateFunds(agentId, amount);
+    });
+    
+    setBatchAmount('');
+    setSelectedAgents(new Set());
+    alert(`成功为 ${selectedAgents.size} 个 Agent 充值 ${amount}`);
+  };
+  
+  // 一键加入竞技场
+  const handleBatchJoinArena = () => {
+    const eligibleAgents = myAgents.filter(
+      a => a.status === 'idle' && a.balance > 0 && !selectedAgents.has(a.id)
+    );
+    
+    const agentsToJoin = [...eligibleAgents, ...myAgents.filter(a => selectedAgents.has(a.id))]
+      .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i); // 去重
+    
+    if (agentsToJoin.length === 0) {
+      alert('没有符合条件的 Agent（需要有余额且处于空闲状态）');
+      return;
+    }
+    
+    agentsToJoin.forEach(agent => {
+      if (agent.status === 'idle' && agent.balance > 0) {
+        joinArena(agent.id);
+      }
+    });
+    
+    setSelectedAgents(new Set());
+    alert(`成功将 ${agentsToJoin.length} 个 Agent 加入竞技场`);
+  };
+  
   const filteredAgents = myAgents.filter(agent => {
     if (filter === 'all') return true;
     return agent.status === filter;
   });
+  
+  const idleAgents = myAgents.filter(a => a.status === 'idle');
+  const canJoinArena = idleAgents.filter(a => a.balance > 0);
   
   const totalBalance = myAgents.reduce((sum, a) => sum + a.balance, 0);
   const totalKills = myAgents.reduce((sum, a) => sum + a.kills, 0);
@@ -116,6 +214,92 @@ const Squad: React.FC = () => {
                 <p className="text-3xl font-bold text-luxury-green font-mono">{totalWins}</p>
               </div>
             </div>
+            
+            {/* 批量操作面板 */}
+            {myAgents.length > 0 && (
+              <div className="card-luxury rounded-2xl overflow-hidden mb-8 border-luxury-cyan/20">
+                <div className="px-6 py-4 border-b border-white/5 bg-gradient-to-r from-luxury-cyan/10 to-transparent">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Zap className="w-6 h-6 text-luxury-cyan" />
+                      <div>
+                        <h2 className="text-lg font-semibold text-white">批量操作</h2>
+                        <p className="text-xs text-white/40">快速管理多个 Agents</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowBatchPanel(!showBatchPanel)}
+                      className="text-sm text-luxury-cyan hover:text-luxury-cyan-light transition-colors"
+                    >
+                      {showBatchPanel ? '收起' : '展开'}
+                    </button>
+                  </div>
+                </div>
+                
+                {showBatchPanel && (
+                  <div className="p-6 space-y-4">
+                    {/* 选择状态 */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={toggleSelectAll}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-void-light border border-white/10 text-white/60 hover:text-white transition-colors"
+                        >
+                          {selectedAgents.size === idleAgents.length && idleAgents.length > 0 ? (
+                            <CheckSquare className="w-4 h-4 text-luxury-green" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                          <span className="text-sm">
+                            全选空闲 ({selectedAgents.size}/{idleAgents.length})
+                          </span>
+                        </button>
+                      </div>
+                      
+                      {/* 一键加入竞技场 */}
+                      <button
+                        onClick={handleBatchJoinArena}
+                        disabled={canJoinArena.length === 0}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-luxury-gold/10 border border-luxury-gold/30 text-luxury-gold hover:bg-luxury-gold/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span className="text-sm font-medium">一键加入竞技场</span>
+                        <span className="text-xs bg-luxury-gold/20 px-2 py-0.5 rounded-full">
+                          {canJoinArena.length}
+                        </span>
+                      </button>
+                    </div>
+                    
+                    {/* 批量充值 */}
+                    {selectedAgents.size > 0 && (
+                      <div className="flex items-center gap-3 p-4 bg-void-light/50 rounded-xl border border-white/5 animate-slide-up">
+                        <div className="flex items-center gap-2 text-white/60">
+                          <Coins className="w-4 h-4" />
+                          <span className="text-sm">为选中的 {selectedAgents.size} 个 Agent 充值:</span>
+                        </div>
+                        <div className="flex-1 relative">
+                          <input
+                            type="number"
+                            value={batchAmount}
+                            onChange={(e) => setBatchAmount(e.target.value)}
+                            placeholder="金额"
+                            className="w-32 bg-void-light border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-luxury-cyan focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          onClick={handleBatchRecharge}
+                          disabled={!batchAmount || parseFloat(batchAmount) <= 0}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-luxury-green/10 border border-luxury-green/30 text-luxury-green hover:bg-luxury-green/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                          确认充值
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* 快速铸造区 */}
             <div className="card-luxury rounded-2xl overflow-hidden mb-8 border-luxury-purple/20">
@@ -245,7 +429,22 @@ const Squad: React.FC = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredAgents.map(agent => (
-                  <AgentCard key={agent.id} agent={agent} />
+                  <div key={agent.id} className="relative">
+                    {/* 选择框（仅空闲状态显示） */}
+                    {agent.status === 'idle' && showBatchPanel && (
+                      <button
+                        onClick={() => toggleAgentSelection(agent.id)}
+                        className="absolute -top-2 -right-2 z-10 w-8 h-8 rounded-lg bg-void-panel border border-white/20 flex items-center justify-center shadow-lg"
+                      >
+                        {selectedAgents.has(agent.id) ? (
+                          <CheckSquare className="w-5 h-5 text-luxury-green" />
+                        ) : (
+                          <Square className="w-5 h-5 text-white/40" />
+                        )}
+                      </button>
+                    )}
+                    <AgentCard agent={agent} />
+                  </div>
                 ))}
               </div>
             )}
