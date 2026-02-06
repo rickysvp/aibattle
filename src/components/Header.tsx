@@ -43,7 +43,7 @@ const Header: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center gap-6">
           <h1 className="text-3xl font-bold font-display text-white tracking-wider">
-            AI<span className="text-gradient">rena</span>
+            AI <span className="text-gradient">Brawl</span>
           </h1>
           {/* 平台统计 */}
           <div className="hidden md:flex items-center gap-1 glass rounded-xl px-4 py-2 border border-white/5">
