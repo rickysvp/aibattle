@@ -20,8 +20,7 @@ import {
   Crown,
   Medal,
   Sparkles,
-  Gem,
-  Sword
+  Gem
 } from 'lucide-react';
 
 interface AgentDetailModalProps {
@@ -136,142 +135,134 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({ agent, isOpen, onCl
 
               {/* 内容区域 - 可滚动 */}
               <div className="flex-1 overflow-y-auto p-6">
-                {/* 基本信息 */}
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
-                  {/* 头像 */}
+                {/* 放大的NFT形象 */}
+                <div className="flex justify-center mb-6">
                   <div
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center flex-shrink-0 mx-auto sm:mx-0"
+                    className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl flex items-center justify-center"
                     style={{
                       background: `linear-gradient(135deg, ${rarity.color}40, ${rarity.color}60)`,
-                      border: `3px solid ${rarity.color}`
+                      border: `4px solid ${rarity.color}`,
+                      boxShadow: `0 0 40px ${rarity.color}40`
                     }}
                   >
-                    <PixelAgent agent={agent} size={64} />
+                    <PixelAgent agent={agent} size={96} />
                   </div>
+                </div>
 
-                  {/* 核心数据 */}
-                  <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-3">
-                    <div className="bg-white/5 rounded-xl p-2 sm:p-3 text-center">
-                      <Wallet className="w-4 h-4 sm:w-5 sm:h-5 mx-auto text-luxury-gold mb-1" />
-                      <p className="text-base sm:text-lg font-bold text-luxury-gold font-mono">{agent.balance.toFixed(0)}</p>
-                      <p className="text-[10px] sm:text-xs text-white/40">余额</p>
+                {/* 核心数据 */}
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="bg-white/5 rounded-xl p-3 text-center">
+                    <Wallet className="w-5 h-5 mx-auto text-luxury-gold mb-1" />
+                    <p className="text-lg font-bold text-luxury-gold font-mono">{agent.balance.toFixed(0)}</p>
+                    <p className="text-xs text-white/40">余额</p>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-3 text-center">
+                    <TrendingUp className={`w-5 h-5 mx-auto mb-1 ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`} />
+                    <p className={`text-lg font-bold font-mono ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
+                      {agent.netProfit >= 0 ? '+' : ''}{agent.netProfit.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-white/40">净利润</p>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-3 text-center">
+                    <Trophy className="w-5 h-5 mx-auto text-luxury-gold mb-1" />
+                    <p className="text-lg font-bold text-luxury-gold font-mono">{agent.tournamentWins}</p>
+                    <p className="text-xs text-white/40">冠军</p>
+                  </div>
+                </div>
+
+                {/* 场次和胜率 - 同一行 */}
+                <div className="flex items-center justify-center gap-8 bg-white/5 rounded-xl p-4 mb-6">
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 justify-center mb-1">
+                      <Swords className="w-5 h-5 text-luxury-cyan" />
+                      <span className="text-2xl font-bold text-white font-mono">{agent.totalBattles}</span>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-2 sm:p-3 text-center">
-                      <TrendingUp className={`w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`} />
-                      <p className={`text-base sm:text-lg font-bold font-mono ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
-                        {agent.netProfit >= 0 ? '+' : ''}{agent.netProfit.toLocaleString()}
-                      </p>
-                      <p className="text-[10px] sm:text-xs text-white/40">净利润</p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-2 sm:p-3 text-center">
-                      <Target className={`w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 ${agent.winRate >= 60 ? 'text-luxury-green' : agent.winRate >= 40 ? 'text-luxury-amber' : 'text-luxury-rose'}`} />
-                      <p className={`text-base sm:text-lg font-bold font-mono ${agent.winRate >= 60 ? 'text-luxury-green' : agent.winRate >= 40 ? 'text-luxury-amber' : 'text-luxury-rose'}`}>
+                    <p className="text-xs text-white/40">总场次</p>
+                  </div>
+                  <div className="w-px h-10 bg-white/10" />
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 justify-center mb-1">
+                      <Target className={`w-5 h-5 ${agent.winRate >= 60 ? 'text-luxury-green' : agent.winRate >= 40 ? 'text-luxury-amber' : 'text-luxury-rose'}`} />
+                      <span className={`text-2xl font-bold font-mono ${agent.winRate >= 60 ? 'text-luxury-green' : agent.winRate >= 40 ? 'text-luxury-amber' : 'text-luxury-rose'}`}>
                         {agent.winRate}%
-                      </p>
-                      <p className="text-[10px] sm:text-xs text-white/40">胜率</p>
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/40">胜率</p>
+                  </div>
+                </div>
+
+                {/* 属性 - 不显示总点数 */}
+                <div className="bg-white/5 rounded-xl p-4 mb-6">
+                  <h3 className="text-sm font-medium text-white mb-3 text-center">属性</h3>
+                  <div className="grid grid-cols-5 gap-4">
+                    <div className="text-center">
+                      <Zap className="w-6 h-6 mx-auto text-luxury-rose mb-1" />
+                      <p className="text-lg font-bold text-luxury-rose font-mono">{agent.attack}</p>
+                      <p className="text-xs text-white/40">攻击</p>
+                    </div>
+                    <div className="text-center">
+                      <Shield className="w-6 h-6 mx-auto text-luxury-cyan mb-1" />
+                      <p className="text-lg font-bold text-luxury-cyan font-mono">{agent.defense}</p>
+                      <p className="text-xs text-white/40">防御</p>
+                    </div>
+                    <div className="text-center">
+                      <Flame className="w-6 h-6 mx-auto text-luxury-amber mb-1" />
+                      <p className="text-lg font-bold text-luxury-amber font-mono">{agent.crit}</p>
+                      <p className="text-xs text-white/40">暴击</p>
+                    </div>
+                    <div className="text-center">
+                      <Crosshair className="w-6 h-6 mx-auto text-luxury-purple mb-1" />
+                      <p className="text-lg font-bold text-luxury-purple font-mono">{agent.hit}</p>
+                      <p className="text-xs text-white/40">命中</p>
+                    </div>
+                    <div className="text-center">
+                      <Wind className="w-6 h-6 mx-auto text-luxury-green mb-1" />
+                      <p className="text-lg font-bold text-luxury-green font-mono">{agent.agility}</p>
+                      <p className="text-xs text-white/40">敏捷</p>
                     </div>
                   </div>
                 </div>
 
-                {/* 属性 */}
-                <div className="bg-white/5 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
-                  <div className="flex items-center justify-between mb-2 sm:mb-3">
-                    <h3 className="text-sm font-medium text-white">属性</h3>
-                    <span className="text-xs text-white/40">{agent.totalStats} pts</span>
-                  </div>
-                  <div className="grid grid-cols-5 gap-2 sm:gap-4">
-                    <div className="text-center">
-                      <Zap className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-luxury-rose mb-1" />
-                      <p className="text-base sm:text-lg font-bold text-luxury-rose font-mono">{agent.attack}</p>
-                      <p className="text-[10px] text-white/40">攻击</p>
-                    </div>
-                    <div className="text-center">
-                      <Shield className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-luxury-cyan mb-1" />
-                      <p className="text-base sm:text-lg font-bold text-luxury-cyan font-mono">{agent.defense}</p>
-                      <p className="text-[10px] text-white/40">防御</p>
-                    </div>
-                    <div className="text-center">
-                      <Flame className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-luxury-amber mb-1" />
-                      <p className="text-base sm:text-lg font-bold text-luxury-amber font-mono">{agent.crit}</p>
-                      <p className="text-[10px] text-white/40">暴击</p>
-                    </div>
-                    <div className="text-center">
-                      <Crosshair className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-luxury-purple mb-1" />
-                      <p className="text-base sm:text-lg font-bold text-luxury-purple font-mono">{agent.hit}</p>
-                      <p className="text-[10px] text-white/40">命中</p>
-                    </div>
-                    <div className="text-center">
-                      <Wind className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-luxury-green mb-1" />
-                      <p className="text-base sm:text-lg font-bold text-luxury-green font-mono">{agent.agility}</p>
-                      <p className="text-[10px] text-white/40">敏捷</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 统计 */}
-                <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 text-center">
-                    <Swords className="w-3.5 h-3.5 sm:w-4 sm:h-4 mx-auto text-luxury-cyan mb-1" />
-                    <p className="text-base sm:text-lg font-bold text-white font-mono">{agent.totalBattles}</p>
-                    <p className="text-[10px] text-white/40">总场次</p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 text-center">
-                    <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 mx-auto text-luxury-gold mb-1" />
-                    <p className="text-base sm:text-lg font-bold text-luxury-gold font-mono">{agent.tournamentWins}</p>
-                    <p className="text-[10px] text-white/40">冠军</p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 text-center">
-                    <Medal className="w-3.5 h-3.5 sm:w-4 sm:h-4 mx-auto text-luxury-purple mb-1" />
-                    <p className="text-base sm:text-lg font-bold text-luxury-purple font-mono">{agent.tournamentTop3}</p>
-                    <p className="text-[10px] text-white/40">前三</p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-2 sm:p-3 text-center">
-                    <Sword className="w-3.5 h-3.5 sm:w-4 sm:h-4 mx-auto text-luxury-rose mb-1" />
-                    <p className="text-base sm:text-lg font-bold text-luxury-rose font-mono">{agent.kills}</p>
-                    <p className="text-[10px] text-white/40">击杀</p>
-                  </div>
-                </div>
-
-                {/* 战斗历史 */}
+                {/* 战斗历史 - 显示盈亏MON */}
                 <div>
-                  <h3 className="text-sm font-medium text-white mb-2 sm:mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-luxury-cyan" />
                     战斗历史 ({agent.battleHistory.length}场)
                   </h3>
-                  <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
                     {agent.battleHistory.slice(0, 20).map((record) => (
                       <div
                         key={record.id}
-                        className="bg-white/5 rounded-lg p-2.5 sm:p-3 flex items-center gap-2 sm:gap-3"
+                        className="bg-white/5 rounded-lg p-3 flex items-center gap-3"
                       >
                         {getResultIcon(record.result)}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                            <span className={`text-xs sm:text-sm font-medium ${
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-sm font-medium ${
                               record.result === 'win' ? 'text-luxury-gold' : 'text-luxury-rose'
                             }`}>
                               {record.result === 'win' ? '胜利' : '失败'}
                             </span>
                             {record.isTournament && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-luxury-gold/20 text-luxury-gold">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-luxury-gold/20 text-luxury-gold">
                                 锦标赛
                               </span>
                             )}
                             {record.rank && record.rank <= 3 && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-luxury-purple/20 text-luxury-purple">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-luxury-purple/20 text-luxury-purple">
                                 #{record.rank}
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] sm:text-xs text-white/40 truncate">
+                          <p className="text-xs text-white/40 truncate">
                             vs {record.opponent}
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className={`text-xs sm:text-sm font-mono ${record.earnings >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
-                            {record.earnings >= 0 ? '+' : ''}{record.earnings}
+                          <p className={`text-sm font-mono ${record.earnings >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
+                            {record.earnings >= 0 ? '+' : ''}{record.earnings} MON
                           </p>
-                          <p className="text-[10px] text-white/30">
+                          <p className="text-xs text-white/30">
                             {formatDate(record.timestamp)}
                           </p>
                         </div>
