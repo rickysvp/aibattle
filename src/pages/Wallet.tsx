@@ -774,39 +774,45 @@ const WalletPage: React.FC = () => {
           </div>
         )}
 
-        {/* 页面标题 */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-luxury-green/20 to-luxury-cyan/20 border border-luxury-green/30 flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-luxury-green" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white font-display">{t('wallet.title')}</h1>
-              <p className="text-white/40 text-lg">{t('wallet.subtitle')}</p>
-            </div>
-          </div>
-        </div>
-
         {!wallet.connected ? (
-          <div className="card-luxury rounded-2xl p-16 text-center">
-            <div className="w-24 h-24 rounded-3xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-6">
-              <Wallet className="w-12 h-12 text-white/20" />
+          <div className="card-luxury rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Wallet className="w-5 h-5 text-luxury-green" />
+                <h2 className="text-base font-semibold text-white">{t('wallet.title')}</h2>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-4">{t('wallet.connectFirst')}</h2>
-            <button
-              onClick={() => connectWallet('wallet')}
-              className="group relative px-8 py-4 rounded-xl overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-luxury-purple via-luxury-purple-light to-luxury-cyan" />
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-              <span className="relative flex items-center gap-2 text-white font-semibold">
-                <Wallet className="w-5 h-5" />
-                {t('wallet.connectWallet')}
-              </span>
-            </button>
+            <div className="p-16 text-center">
+              <div className="w-24 h-24 rounded-3xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-6">
+                <Wallet className="w-12 h-12 text-white/20" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-4">{t('wallet.connectFirst')}</h2>
+              <button
+                onClick={() => connectWallet('wallet')}
+                className="group relative px-8 py-4 rounded-xl overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-luxury-purple via-luxury-purple-light to-luxury-cyan" />
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                <span className="relative flex items-center gap-2 text-white font-semibold">
+                  <Wallet className="w-5 h-5" />
+                  {t('wallet.connectWallet')}
+                </span>
+              </button>
+            </div>
           </div>
         ) : (
           <>
+            {/* 页面标题 - 与BATTLE标题高度一致 */}
+            <div className="card-luxury rounded-2xl overflow-hidden mb-6">
+              <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Wallet className="w-5 h-5 text-luxury-green" />
+                  <h2 className="text-base font-semibold text-white">{t('wallet.title')}</h2>
+                  <span className="text-xs text-white/40">{t('wallet.subtitle')}</span>
+                </div>
+              </div>
+            </div>
+
             {/* 资产概览卡片 */}
             <div className="card-luxury rounded-2xl overflow-hidden mb-6 border-luxury-gold/20">
               <div className="px-8 py-6 bg-gradient-to-br from-luxury-gold/5 to-transparent">

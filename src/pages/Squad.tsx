@@ -377,12 +377,20 @@ const Squad: React.FC = () => {
         </div>
         
         {!wallet.connected ? (
-          <div className="card-luxury rounded-2xl p-16 text-center">
-            <div className="w-24 h-24 rounded-3xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-6">
-              <Wallet className="w-12 h-12 text-white/20" />
+          <div className="card-luxury rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-luxury-cyan" />
+                <h2 className="text-base font-semibold text-white">{t('squad.title')}</h2>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">{t('wallet.connectFirst')}</h2>
-            <p className="text-white/40">{t('wallet.connectDesc')}</p>
+            <div className="p-16 text-center">
+              <div className="w-24 h-24 rounded-3xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-6">
+                <Wallet className="w-12 h-12 text-white/20" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3">{t('wallet.connectFirst')}</h2>
+              <p className="text-white/40">{t('wallet.connectDesc')}</p>
+            </div>
           </div>
         ) : (
           <>
