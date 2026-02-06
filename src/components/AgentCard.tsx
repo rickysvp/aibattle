@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Agent, Rarity } from '../types';
 import PixelAgent from './PixelAgent';
 import AgentDetailModal from './AgentDetailModal';
+import { useGameStore } from '../store/gameStore';
 import { 
   Zap, 
   Shield, 
@@ -15,7 +16,9 @@ import {
   Swords,
   TrendingUp,
   Wallet,
-  Info
+  Info,
+  ArrowDownRight,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface AgentCardProps {
@@ -65,6 +68,28 @@ const rarityConfig: Record<Rarity, { name: string; color: string; bgColor: strin
 const AgentCard: React.FC<AgentCardProps> = ({ agent, compact = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const { allocateFunds, withdrawFunds, wallet } = useGameStore();
+  const [showDepositInput, setShowDepositInput] = useState(false);
+  const [showWithdrawInput, setShowWithdrawInput] = useState(false);
+  const [amount, setAmount] = useState('');
+
+  const handleDeposit = () => {
+    const value = parseFloat(amount);
+    if (value > 0 && wallet.balance >= value) {
+      allocateFunds(agent.id, value);
+      setAmount('');
+      setShowDepositInput(false);
+    }
+  };
+
+  const handleWithdraw = () => {
+    const value = parseFloat(amount);
+    if (value > 0 && agent.balance >= value) {
+      withdrawFunds(agent.id, value);
+      setAmount('');
+      setShowWithdrawInput(false);
+    }
+  };
   
   const getStatusConfig = () => {
     switch (agent.status) {
@@ -261,6 +286,79 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, compact = false }) => {
                   </span>
                 </div>
               </div>
+
+              {/* 快速存取款按钮 */}
+              {agent.status === 'idle' && (
+                <div className="flex items-center gap-2 mt-2">
+                  {showDepositInput ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="金额"
+                        className="w-16 px-1.5 py-0.5 text-xs bg-void-light border border-white/10 rounded text-white"
+                        autoFocus
+                      />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeposit(); }}
+                        className="px-2 py-0.5 text-xs bg-luxury-green/20 text-luxury-green rounded hover:bg-luxury-green/30"
+                      >
+                        确认
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowDepositInput(false); setAmount(''); }}
+                        className="px-2 py-0.5 text-xs bg-white/10 text-white/60 rounded hover:bg-white/20"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowDepositInput(true); }}
+                      className="flex items-center gap-0.5 px-2 py-0.5 text-xs bg-luxury-green/10 text-luxury-green rounded hover:bg-luxury-green/20"
+                      title="存款"
+                    >
+                      <ArrowDownRight className="w-3 h-3" />
+                      <span>存款</span>
+                    </button>
+                  )}
+
+                  {showWithdrawInput ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="金额"
+                        className="w-16 px-1.5 py-0.5 text-xs bg-void-light border border-white/10 rounded text-white"
+                        autoFocus
+                      />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleWithdraw(); }}
+                        className="px-2 py-0.5 text-xs bg-luxury-amber/20 text-luxury-amber rounded hover:bg-luxury-amber/30"
+                      >
+                        确认
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowWithdrawInput(false); setAmount(''); }}
+                        className="px-2 py-0.5 text-xs bg-white/10 text-white/60 rounded hover:bg-white/20"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowWithdrawInput(true); }}
+                      className="flex items-center gap-0.5 px-2 py-0.5 text-xs bg-luxury-amber/10 text-luxury-amber rounded hover:bg-luxury-amber/20"
+                      title="提款"
+                    >
+                      <ArrowUpRight className="w-3 h-3" />
+                      <span>提款</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

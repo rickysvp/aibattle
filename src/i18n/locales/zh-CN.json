@@ -219,7 +219,7 @@
     "available": "可用余额",
     "locked": "锁定资产",
     "deposit": "存款",
-    "withdraw": "提现",
+    "withdraw": "转账",
     "swap": "兑换",
     "depositDesc": "从外部钱包转入",
     "withdrawDesc": "转出到外部钱包",
