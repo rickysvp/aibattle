@@ -27,15 +27,22 @@ const rarityConfig: Record<Rarity, { minStats: number; maxStats: number; name: s
   mythic: { minStats: 278, maxStats: 332, name: '神话', color: '#ef4444' },
 };
 
+// NFT编号计数器
+let nftIdCounter = 1000;
+
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+// 生成NFT编号
+const generateNftId = () => {
+  return nftIdCounter++;
+};
 
 // 生成随机名称
 const generateName = () => {
   const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
   const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-  const number = Math.floor(Math.random() * 100);
-  return `${prefix}${suffix}#${number}`;
+  return `${prefix}${suffix}`;
 };
 
 // 生成属性点 (11-99, 总和<333)
@@ -161,6 +168,7 @@ export const generateRandomAgent = (isPlayer: boolean = false): Agent => {
   return {
     id: generateId(),
     name: generateName(),
+    nftId: generateNftId(),
     color: agentColors[Math.floor(Math.random() * agentColors.length)],
     // 基础属性
     ...agentStats,

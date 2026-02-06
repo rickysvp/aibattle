@@ -5,6 +5,7 @@ export type Rarity = 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export interface Agent {
   id: string;
   name: string;
+  nftId: number;       // NFT编号
   color: string;
   // 基础属性 (11-99, 总和<333)
   attack: number;      // 攻击力
