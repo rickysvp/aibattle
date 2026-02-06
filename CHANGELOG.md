@@ -7,6 +7,21 @@
 
 ---
 
+## [1.8.8] - 2026-02-06
+
+### 优化
+- 优化 Squad 页面标题样式，与 BATTLE 标题高度一致
+- 统一使用 card-luxury 和 px-6 py-4 的标题样式
+
+### 修复
+- 修复轮次乱跳问题
+- 移除 getTotalSystemRounds() 中的随机计算逻辑
+- Top Bar Round 直接显示 totalSystemRounds，确保稳定递增
+- BATTLE 标题轮次使用固定的 totalSystemRounds 值
+- 每一轮战斗有固定的轮次编号，便于追溯
+
+---
+
 ## [1.8.7] - 2026-02-06
 
 ### 修复
