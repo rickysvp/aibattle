@@ -1,4 +1,4 @@
-import { Agent, BattleRecord } from '../types';
+import { Agent, BattleRecord, Rarity } from '../types';
 
 // 随机名称生成
 const prefixes = ['超级', '闪电', '暗影', '烈焰', '冰霜', '雷霆', '狂暴', '幻影', '钢铁', '黄金'];
@@ -18,6 +18,15 @@ const agentColors = [
   '#14b8a6', // 青绿
 ];
 
+// 稀有度配置
+const rarityConfig: Record<Rarity, { minStats: number; maxStats: number; name: string; color: string }> = {
+  common: { minStats: 55, maxStats: 111, name: '普通', color: '#9ca3af' },
+  rare: { minStats: 112, maxStats: 166, name: '稀有', color: '#3b82f6' },
+  epic: { minStats: 167, maxStats: 222, name: '史诗', color: '#a855f7' },
+  legendary: { minStats: 223, maxStats: 277, name: '传说', color: '#f59e0b' },
+  mythic: { minStats: 278, maxStats: 332, name: '神话', color: '#ef4444' },
+};
+
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -27,6 +36,44 @@ const generateName = () => {
   const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
   const number = Math.floor(Math.random() * 100);
   return `${prefix}${suffix}#${number}`;
+};
+
+// 生成属性点 (11-99, 总和<333)
+const generateStats = () => {
+  // 先生成5个11-99之间的随机数
+  const minStat = 11;
+  const maxStat = 99;
+  const maxTotal = 332;
+
+  let attack = minStat + Math.floor(Math.random() * (maxStat - minStat + 1));
+  let defense = minStat + Math.floor(Math.random() * (maxStat - minStat + 1));
+  let crit = minStat + Math.floor(Math.random() * (maxStat - minStat + 1));
+  let hit = minStat + Math.floor(Math.random() * (maxStat - minStat + 1));
+  let agility = minStat + Math.floor(Math.random() * (maxStat - minStat + 1));
+
+  let total = attack + defense + crit + hit + agility;
+
+  // 如果总和超过332，按比例缩减
+  if (total > maxTotal) {
+    const ratio = maxTotal / total;
+    attack = Math.max(minStat, Math.floor(attack * ratio));
+    defense = Math.max(minStat, Math.floor(defense * ratio));
+    crit = Math.max(minStat, Math.floor(crit * ratio));
+    hit = Math.max(minStat, Math.floor(hit * ratio));
+    agility = Math.max(minStat, Math.floor(agility * ratio));
+    total = attack + defense + crit + hit + agility;
+  }
+
+  // 计算稀有度
+  let rarity: Rarity = 'common';
+  for (const [key, config] of Object.entries(rarityConfig)) {
+    if (total >= config.minStats && total <= config.maxStats) {
+      rarity = key as Rarity;
+      break;
+    }
+  }
+
+  return { attack, defense, crit, hit, agility, totalStats: total, rarity };
 };
 
 // 生成战斗历史记录
@@ -109,15 +156,18 @@ export const generateRandomAgent = (isPlayer: boolean = false): Agent => {
 
   const battleHistory = generateBattleHistory(wins, losses);
   const stats = calculateAgentStats(wins, losses, kills, battleHistory);
+  const agentStats = generateStats();
 
   return {
     id: generateId(),
     name: generateName(),
     color: agentColors[Math.floor(Math.random() * agentColors.length)],
+    // 基础属性
+    ...agentStats,
+    // 战斗属性
     hp: baseHp,
     maxHp: baseHp,
-    attack: 10 + Math.floor(Math.random() * 10),
-    defense: 5 + Math.floor(Math.random() * 5),
+    // 经济
     balance: 0,
     // 基础统计
     wins,

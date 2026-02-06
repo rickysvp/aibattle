@@ -1,12 +1,23 @@
+// 稀有度类型
+export type Rarity = 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
+
 // Agent 类型定义
 export interface Agent {
   id: string;
   name: string;
   color: string;
+  // 基础属性 (11-99, 总和<333)
+  attack: number;      // 攻击力
+  defense: number;     // 防御力
+  crit: number;        // 暴击率
+  hit: number;         // 命中率
+  agility: number;     // 敏捷
+  totalStats: number;  // 属性总和
+  rarity: Rarity;      // 稀有度
+  // 战斗属性
   hp: number;
   maxHp: number;
-  attack: number;
-  defense: number;
+  // 经济
   balance: number;
   // 基础统计
   wins: number;
