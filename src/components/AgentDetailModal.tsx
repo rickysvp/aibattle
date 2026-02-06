@@ -137,32 +137,32 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({ agent, isOpen, onCl
               <div className="flex-1 overflow-y-auto p-6">
                 {/* NFT形象 + 余额/利润 布局 */}
                 <div className="flex gap-4 mb-6">
-                  {/* NFT形象 - 左侧 */}
+                  {/* NFT形象 - 左侧放大 */}
                   <div
-                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{
                       background: `linear-gradient(135deg, ${rarity.color}40, ${rarity.color}60)`,
                       border: `3px solid ${rarity.color}`,
-                      boxShadow: `0 0 30px ${rarity.color}40`
+                      boxShadow: `0 0 40px ${rarity.color}50`
                     }}
                   >
-                    <PixelAgent agent={agent} size={80} />
+                    <PixelAgent agent={agent} size={112} />
                   </div>
 
                   {/* 余额和利润 - 右侧上下叠 */}
-                  <div className="flex-1 flex flex-col gap-2">
-                    <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3">
-                      <Wallet className="w-5 h-5 text-luxury-gold" />
+                  <div className="flex-1 flex flex-col justify-center gap-3">
+                    <div className="bg-white/5 rounded-xl p-4 flex items-center gap-3">
+                      <Wallet className="w-6 h-6 text-luxury-gold" />
                       <div>
                         <p className="text-xs text-white/40">余额</p>
-                        <p className="text-lg font-bold text-luxury-gold font-mono">{agent.balance.toFixed(0)} MON</p>
+                        <p className="text-xl font-bold text-luxury-gold font-mono">{agent.balance.toFixed(0)} MON</p>
                       </div>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3">
-                      <TrendingUp className={`w-5 h-5 ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`} />
+                    <div className="bg-white/5 rounded-xl p-4 flex items-center gap-3">
+                      <TrendingUp className={`w-6 h-6 ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`} />
                       <div>
                         <p className="text-xs text-white/40">净利润</p>
-                        <p className={`text-lg font-bold font-mono ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
+                        <p className={`text-xl font-bold font-mono ${agent.netProfit >= 0 ? 'text-luxury-green' : 'text-luxury-rose'}`}>
                           {agent.netProfit >= 0 ? '+' : ''}{agent.netProfit.toLocaleString()} MON
                         </p>
                       </div>
