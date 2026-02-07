@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { TransactionService } from '../services/database';
+import ConnectButton from '../components/ConnectButton';
 import { 
   Wallet, 
   TrendingUp, 
@@ -66,7 +67,7 @@ const MON_PRICE_CHANGE_24H = 5.23;
 const WalletPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { wallet, myAgents, connectWallet, withdrawFunds, userStakes, calculateRewards } = useGameStore();
+  const { wallet, myAgents, withdrawFunds, userStakes, calculateRewards } = useGameStore();
   
   // 弹窗状态
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -852,12 +853,7 @@ const WalletPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">{t('wallet.connectFirst')}</h2>
           <p className="text-white/40 mb-8">{t('wallet.connectDesc') || 'Please connect your wallet to continue'}</p>
-          <button
-            onClick={() => connectWallet('wallet')}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-luxury-gold to-luxury-purple text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            {t('wallet.connectWallet')}
-          </button>
+          <ConnectButton />
         </div>
       </div>
     );

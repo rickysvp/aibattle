@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../store/gameStore';
+import ConnectButton from '../components/ConnectButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import TournamentBracket from '../components/TournamentBracket';
 import type { Tournament as TournamentType } from '../types';
@@ -31,8 +32,7 @@ const Tournament: React.FC = () => {
     tournamentAutoSettings,
     registerForTournament,
     setTournamentAutoSettings,
-    getQualifiedAgentsForTournament,
-    connectWallet
+    getQualifiedAgentsForTournament
   } = useGameStore();
 
   const [selectedTournament, setSelectedTournament] = useState<TournamentType | null>(null);
@@ -192,12 +192,7 @@ const Tournament: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">{t('wallet.connectFirst')}</h2>
           <p className="text-white/40 mb-8">{t('wallet.connectDesc') || 'Please connect your wallet to continue'}</p>
-          <button
-            onClick={() => connectWallet('wallet')}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-luxury-gold to-luxury-purple text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            {t('wallet.connectWallet')}
-          </button>
+          <ConnectButton />
         </div>
       </div>
     );

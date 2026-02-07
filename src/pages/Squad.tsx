@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../store/gameStore';
 import AgentCard from '../components/AgentCard';
 import MintingModal from '../components/MintingModal';
+import ConnectButton from '../components/ConnectButton';
 import { Agent } from '../types';
 import {
   Users,
@@ -30,8 +31,7 @@ const Squad: React.FC = () => {
     mintAgent,
     mintCost,
     allocateFunds,
-    joinArena,
-    connectWallet
+    joinArena
   } = useGameStore();
 
   // 调试日志
@@ -249,12 +249,7 @@ const Squad: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">{t('wallet.connectFirst')}</h2>
           <p className="text-white/40 mb-8">{t('wallet.connectDesc') || 'Please connect your wallet to continue'}</p>
-          <button
-            onClick={() => connectWallet('wallet')}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-luxury-purple to-luxury-cyan text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            {t('wallet.connectWallet')}
-          </button>
+          <ConnectButton />
         </div>
       </div>
     );
