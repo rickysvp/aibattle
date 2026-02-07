@@ -221,16 +221,16 @@ const Header: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* 断开连接按钮 - 放在最下面 */}
+                    {/* 断开连接按钮 - 仅图标 */}
                     <button
                       onClick={() => {
                         disconnectWallet();
                         setShowWalletMenu(false);
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-luxury-rose/10 border border-luxury-rose/30 text-luxury-rose hover:bg-luxury-rose/20 transition-colors text-sm font-medium"
+                      className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-luxury-rose/10 border border-luxury-rose/30 text-luxury-rose hover:bg-luxury-rose/20 transition-colors"
+                      title={t('header.disconnect')}
                     >
-                      <LogOut className="w-4 h-4" />
-                      {t('header.disconnect')}
+                      <LogOut className="w-5 h-5" />
                     </button>
                   </div>
                 )}

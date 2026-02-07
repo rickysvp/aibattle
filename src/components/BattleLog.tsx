@@ -99,9 +99,9 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, maxHeight = '300px' }) => {
   };
 
   return (
-    <div className="card-luxury rounded-2xl overflow-hidden">
+    <div className="card-luxury rounded-2xl overflow-hidden font-apple">
       {/* 日志列表 */}
-      <div 
+      <div
         ref={scrollRef}
         className="overflow-y-auto p-3 space-y-2"
         style={{ maxHeight }}
@@ -118,13 +118,13 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, maxHeight = '300px' }) => {
           logs.map((log, index) => {
             const config = getLogConfig(log.type);
             const Icon = config.icon;
-            
+
             return (
-              <div 
+              <div
                 key={log.id}
                 className={`group flex items-start gap-3 p-3 rounded-xl transition-all duration-300 ${
-                  log.isHighlight 
-                    ? 'bg-gradient-to-r from-luxury-gold/10 to-transparent border border-luxury-gold/20' 
+                  log.isHighlight
+                    ? 'bg-gradient-to-r from-luxury-gold/10 to-transparent border border-luxury-gold/20'
                     : 'bg-void-light/30 hover:bg-void-light/50 border border-transparent hover:border-white/5'
                 }`}
                 style={{
@@ -135,10 +135,10 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, maxHeight = '300px' }) => {
                 <div className={`flex-shrink-0 w-8 h-8 rounded-lg ${config.bgColor} border ${config.borderColor} flex items-center justify-center`}>
                   <Icon className={`w-4 h-4 ${config.color}`} />
                 </div>
-                
+
                 {/* 内容 */}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${log.isHighlight ? 'text-luxury-gold' : 'text-white/80'} leading-relaxed`}>
+                  <p className={`text-sm ${log.isHighlight ? 'text-luxury-gold' : 'text-white/80'} leading-relaxed tracking-tight`}>
                     {log.message}
                   </p>
                   {log.damage && (
@@ -148,7 +148,7 @@ const BattleLog: React.FC<BattleLogProps> = ({ logs, maxHeight = '300px' }) => {
                     </span>
                   )}
                 </div>
-                
+
                 {/* 时间戳 */}
                 <span className="flex-shrink-0 text-[10px] text-white/30 font-mono">
                   {formatTime(log.timestamp)}

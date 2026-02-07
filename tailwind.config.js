@@ -51,6 +51,7 @@ export default {
         'display': ['"Orbitron"', 'sans-serif'],
         'pixel': ['"Press Start 2P"', 'cursive'],
         'mono': ['"JetBrains Mono"', 'monospace'],
+        'apple': ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

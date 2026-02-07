@@ -366,12 +366,12 @@ const Squad: React.FC = () => {
 
         {/* 战斗回放 - 展示随机一个机器人在随机战斗中的表现 */}
         {featuredBattle && (
-          <div className="card-luxury rounded-2xl overflow-hidden mb-8 border-luxury-rose/20">
+          <div className="card-luxury rounded-2xl overflow-hidden mb-8 border-luxury-rose/20 font-apple">
             <div className="px-6 py-4 border-b border-white/5 bg-gradient-to-r from-luxury-rose/10 to-transparent flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Play className="w-5 h-5 text-luxury-rose" />
-                <h3 className="text-lg font-semibold text-white">{t('squad.battleReplay') || '战斗回放'}</h3>
-                <span className="text-xs text-white/40">{t('squad.liveBattles') || '平台内1000+ Agents正在持续战斗'}</span>
+                <h3 className="text-lg font-semibold text-white tracking-tight">{t('squad.battleReplay') || '战斗回放'}</h3>
+                <span className="text-xs text-white/40 tracking-tight">{t('squad.liveBattles') || '平台内1000+ Agents正在持续战斗'}</span>
               </div>
               <button
                 onClick={loadRandomBattle}
