@@ -112,15 +112,15 @@ const BattleLog: React.FC<BattleLogProps> = ({
     }
   };
 
-  // 高亮消息中的 $MON 金额
+  // 高亮消息中的掠夺金额（数字 + $MON 格式）
   const highlightMessage = (message: string) => {
-    // 匹配数字 + $MON 或 $MON + 数字 或 纯数字（掠夺金额）
-    const parts = message.split(/(\d+\s*\$MON|\$MON\s*\d+|\$MON|\d+)/g);
+    // 只匹配 "数字 $MON" 格式（掠夺金额）
+    const parts = message.split(/(\d+\s*\$MON)/g);
     return parts.map((part, index) => {
-      // 如果是 $MON 或包含数字，用绿色高亮
-      if (/\d+/.test(part) || part.includes('$MON')) {
+      // 如果是 "数字 $MON" 格式，用绿色高亮
+      if (/\d+\s*\$MON/.test(part)) {
         return (
-          <span key={index} className="text-luxury-green font-medium">
+          <span key={index} className="text-luxury-green font-semibold">
             {part}
           </span>
         );

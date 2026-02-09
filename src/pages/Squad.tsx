@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../store/gameStore';
+import { useNavigate } from 'react-router-dom';
 
 import MintingModal from '../components/MintingModal';
 import ConnectButton from '../components/ConnectButton';
@@ -655,6 +656,7 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
   onToggleSelection,
 }) => {
   const { joinArena, leaveArena } = useGameStore();
+  const navigate = useNavigate();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   
   const rarityColors: Record<string, string> = {
@@ -854,7 +856,8 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
             
             {/* 操作 */}
             <div className="col-span-1 text-right" onClick={(e) => e.stopPropagation()}>
-              {agent.status === 'idle' && (
+              {/* 有余额且在idle/eliminated状态 - 显示加入竞技场按钮 */}
+              {(agent.status === 'idle' || agent.status === 'eliminated') && agent.balance > 0 && (
                 <button
                   onClick={() => joinArena(agent.id)}
                   className="p-2 rounded-lg bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold transition-colors"
@@ -863,7 +866,8 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
                   <Swords className="w-4 h-4" />
                 </button>
               )}
-              {agent.status === 'in_arena' && (
+              {/* 有余额且在in_arena状态 - 显示退出竞技场按钮 */}
+              {agent.status === 'in_arena' && agent.balance > 0 && (
                 <button
                   onClick={() => leaveArena(agent.id)}
                   className="p-2 rounded-lg bg-luxury-rose/10 hover:bg-luxury-rose/20 text-luxury-rose transition-colors"
@@ -872,11 +876,19 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
                   <LogOut className="w-4 h-4" />
                 </button>
               )}
+              {/* 战斗中状态 */}
               {agent.status === 'fighting' && (
                 <span className="text-xs text-luxury-rose">战斗中</span>
               )}
-              {agent.status === 'eliminated' && (
-                <span className="text-xs text-gray-500">已淘汰</span>
+              {/* 无余额状态 - 显示充值按钮 */}
+              {agent.balance <= 0 && (
+                <button
+                  onClick={() => navigate('/recharge')}
+                  className="p-2 rounded-lg bg-luxury-cyan/10 hover:bg-luxury-cyan/20 text-luxury-cyan transition-colors"
+                  title="充值"
+                >
+                  <Wallet className="w-4 h-4" />
+                </button>
               )}
             </div>
           </div>

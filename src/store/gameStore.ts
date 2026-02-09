@@ -1659,15 +1659,21 @@ export const useGameStore = create<GameStore>()(
       }));
     });
 
-    // 添加战斗日志
+    // 添加战斗日志 - 计算胜者实际掠夺的金额
     if (winner) {
+      const winnerInitialBalance = initialBalances.get(winner.id) || 0;
+      const winnerFinalBalance = winner.balance;
+      const totalLoot = winnerFinalBalance - winnerInitialBalance;
+
       const log: BattleLog = {
         id: `autobattle-${Date.now()}`,
         timestamp: Date.now(),
         type: 'eliminate',
         attacker: winner,
         defender: selectedAgents.find(p => p.id !== winner.id) || selectedAgents[0],
-        message: `[AutoBattle] ${winner.name} 赢得了战斗！获得 ${winner.balance.toFixed(0)} MON`,
+        message: totalLoot > 0
+          ? `[AutoBattle] ${winner.name} 赢得了战斗！掠夺 ${Math.floor(totalLoot)} $MON`
+          : `[AutoBattle] ${winner.name} 赢得了战斗！`,
         isHighlight: true,
       };
 
