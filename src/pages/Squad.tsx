@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../store/gameStore';
-import { useNavigate } from 'react-router-dom';
+
 
 import MintingModal from '../components/MintingModal';
 import ConnectButton from '../components/ConnectButton';
 import AgentDetailModal from '../components/AgentDetailModal';
+import QuickRechargeModal from '../components/QuickRechargeModal';
 import { Agent } from '../types';
 import {
   Users,
@@ -656,8 +657,8 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
   onToggleSelection,
 }) => {
   const { joinArena, leaveArena } = useGameStore();
-  const navigate = useNavigate();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   
   const rarityColors: Record<string, string> = {
     common: '#9ca3af',
@@ -765,7 +766,7 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      navigate('/recharge');
+                      setIsRechargeOpen(true);
                     }}
                     className="p-2 rounded-lg bg-luxury-cyan/10 hover:bg-luxury-cyan/20 text-luxury-cyan transition-colors relative z-20"
                   >
@@ -914,7 +915,7 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    navigate('/recharge');
+                    setIsRechargeOpen(true);
                   }}
                   className="p-2 rounded-lg bg-luxury-cyan/10 hover:bg-luxury-cyan/20 text-luxury-cyan transition-colors relative z-20"
                   title="充值"
@@ -931,6 +932,13 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
         agent={agent}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
+      />
+      
+      <QuickRechargeModal
+        agentId={agent.id}
+        agentName={agent.name}
+        isOpen={isRechargeOpen}
+        onClose={() => setIsRechargeOpen(false)}
       />
     </>
   );
