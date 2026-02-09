@@ -195,10 +195,18 @@ export const useGameStore = create<GameStore>()(
           try {
             const userAgents = await AgentService.getUserAgents(user.id);
             if (userAgents.length > 0) {
-                 set({
-                  myAgents: userAgents.map(DataTransformers.toFrontendAgent),
-                });
-                console.log(`[Wallet] Loaded ${userAgents.length} agents for user ${nickname}`);
+              const frontendAgents = userAgents.map(DataTransformers.toFrontendAgent);
+              // 计算 lockedBalance = 所有 Agent 余额总和
+              const totalLockedBalance = frontendAgents.reduce((sum, agent) => sum + agent.balance, 0);
+              
+              set((state) => ({
+                myAgents: frontendAgents,
+                wallet: {
+                  ...state.wallet,
+                  lockedBalance: totalLockedBalance,
+                }
+              }));
+              console.log(`[Wallet] Loaded ${userAgents.length} agents for user ${nickname}, lockedBalance: ${totalLockedBalance}`);
             }
           } catch (agentError) {
             console.error('[Wallet] Failed to load user agents:', agentError);
