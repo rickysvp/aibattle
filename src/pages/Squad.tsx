@@ -735,21 +735,41 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
               </div>
               
               {/* 操作按钮 */}
-              <div onClick={(e) => e.stopPropagation()}>
-                {agent.status === 'idle' && (
+              <div className="relative z-10" onClick={(e) => e.stopPropagation()}>
+                {agent.status === 'idle' && agent.balance > 0 && (
                   <button
-                    onClick={() => joinArena(agent.id)}
-                    className="p-2 rounded-lg bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      joinArena(agent.id);
+                    }}
+                    className="p-2 rounded-lg bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold transition-colors relative z-20"
                   >
                     <Swords className="w-4 h-4" />
                   </button>
                 )}
-                {agent.status === 'in_arena' && (
+                {agent.status === 'in_arena' && agent.balance > 0 && (
                   <button
-                    onClick={() => leaveArena(agent.id)}
-                    className="p-2 rounded-lg bg-luxury-rose/10 hover:bg-luxury-rose/20 text-luxury-rose transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      leaveArena(agent.id);
+                    }}
+                    className="p-2 rounded-lg bg-luxury-rose/10 hover:bg-luxury-rose/20 text-luxury-rose transition-colors relative z-20"
                   >
                     <LogOut className="w-4 h-4" />
+                  </button>
+                )}
+                {agent.balance <= 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate('/recharge');
+                    }}
+                    className="p-2 rounded-lg bg-luxury-cyan/10 hover:bg-luxury-cyan/20 text-luxury-cyan transition-colors relative z-20"
+                  >
+                    <Wallet className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -855,12 +875,16 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
             </div>
             
             {/* 操作 */}
-            <div className="col-span-1 text-right" onClick={(e) => e.stopPropagation()}>
-              {/* 有余额且在idle/eliminated状态 - 显示加入竞技场按钮 */}
-              {(agent.status === 'idle' || agent.status === 'eliminated') && agent.balance > 0 && (
+            <div className="col-span-1 text-right relative z-10" onClick={(e) => e.stopPropagation()}>
+              {/* 有余额且在idle状态 - 显示加入竞技场按钮 */}
+              {agent.status === 'idle' && agent.balance > 0 && (
                 <button
-                  onClick={() => joinArena(agent.id)}
-                  className="p-2 rounded-lg bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    joinArena(agent.id);
+                  }}
+                  className="p-2 rounded-lg bg-luxury-gold/10 hover:bg-luxury-gold/20 text-luxury-gold transition-colors relative z-20"
                   title="加入竞技场"
                 >
                   <Swords className="w-4 h-4" />
@@ -869,8 +893,12 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
               {/* 有余额且在in_arena状态 - 显示退出竞技场按钮 */}
               {agent.status === 'in_arena' && agent.balance > 0 && (
                 <button
-                  onClick={() => leaveArena(agent.id)}
-                  className="p-2 rounded-lg bg-luxury-rose/10 hover:bg-luxury-rose/20 text-luxury-rose transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    leaveArena(agent.id);
+                  }}
+                  className="p-2 rounded-lg bg-luxury-rose/10 hover:bg-luxury-rose/20 text-luxury-rose transition-colors relative z-20"
                   title="退出竞技场"
                 >
                   <LogOut className="w-4 h-4" />
@@ -883,8 +911,12 @@ const SquadAgentRow: React.FC<SquadAgentRowProps> = ({
               {/* 无余额状态 - 显示充值按钮 */}
               {agent.balance <= 0 && (
                 <button
-                  onClick={() => navigate('/recharge')}
-                  className="p-2 rounded-lg bg-luxury-cyan/10 hover:bg-luxury-cyan/20 text-luxury-cyan transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate('/recharge');
+                  }}
+                  className="p-2 rounded-lg bg-luxury-cyan/10 hover:bg-luxury-cyan/20 text-luxury-cyan transition-colors relative z-20"
                   title="充值"
                 >
                   <Wallet className="w-4 h-4" />
