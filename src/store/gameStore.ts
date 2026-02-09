@@ -1708,8 +1708,20 @@ export const useGameStore = create<GameStore>()(
 }), {
   name: 'aibrawl-storage',
   storage: createJSONStorage(() => localStorage),
-  partialize: (state) => ({ 
+  partialize: (state) => ({
     wallet: state.wallet,
     myAgents: state.myAgents,
   }),
+  onRehydrateStorage: () => (state) => {
+    // 数据迁移：将旧的'dead'状态改为'eliminated'
+    if (state?.myAgents) {
+      state.myAgents = state.myAgents.map(agent => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((agent.status as any) === 'dead') {
+          return { ...agent, status: 'eliminated' };
+        }
+        return agent;
+      });
+    }
+  },
 }));
