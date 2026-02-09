@@ -409,19 +409,20 @@ const Arena: React.FC = () => {
         {/* 排行榜跑马灯 - 在竞技场标题上方 */}
         <LeaderboardMarquee />
 
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0">
-          {/* 左侧：竞技场 */}
-          <div className="lg:col-span-3 h-full min-h-0">
+        {/* 移动端：垂直布局 | 桌面端：左右布局 */}
+        <div className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-4 lg:gap-6 min-h-0 overflow-y-auto lg:overflow-visible pb-20 lg:pb-0">
+          {/* 竞技场 */}
+          <div className="lg:col-span-3 flex-shrink-0 lg:flex-shrink lg:h-full lg:min-h-0">
             {/* 战斗画面 */}
-            <div className="card-luxury rounded-2xl overflow-hidden h-full flex flex-col">
-              <div className="px-6 h-[72px] border-b border-white/5 flex items-center justify-between flex-shrink-0">
+            <div className="card-luxury rounded-2xl overflow-hidden h-auto lg:h-full flex flex-col">
+              <div className="px-4 lg:px-6 h-[56px] lg:h-[72px] border-b border-white/5 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-white">BATTLE</h2>
+                  <h2 className="text-base lg:text-lg font-semibold text-white">BATTLE</h2>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-luxury-gold/20 text-luxury-gold border border-luxury-gold/30 font-mono">
                     {t('arena.round')} {displayBattleRound.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-luxury-green/5 border border-luxury-green/20 rounded-full">
+                <div className="flex items-center gap-2 px-2 lg:px-3 py-1.5 bg-luxury-green/5 border border-luxury-green/20 rounded-full">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-luxury-green opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-luxury-green"></span>
@@ -432,7 +433,7 @@ const Arena: React.FC = () => {
                   </span>
                 </div>
               </div>
-              <div className="flex-1 p-4 relative min-h-0">
+              <div className="aspect-[4/3] lg:flex-1 lg:aspect-auto p-2 lg:p-4 relative min-h-0">
                 <ArenaCanvas
                   phase={currentPhase}
                   countdown={currentCountdown}
@@ -525,109 +526,46 @@ const Arena: React.FC = () => {
                 )}
               </div>
             </div>
-            
-            {/* 战斗日志 - Tab 切换 (已移动到 Canvas 内部) */}
-            {/* 
-            <div className="card-luxury rounded-2xl overflow-hidden">
-              <div className="px-6 py-3 border-b border-white/5">
-                <div className="flex items-center relative bg-void-light/20 rounded-xl p-1 w-fit isolate">
-                  <motion.div
-                    className="absolute inset-y-1 rounded-lg bg-luxury-purple/20 -z-10"
-                    initial={false}
-                    animate={{
-                      x: logTab === 'arena' ? 4 : 'calc(100% + 4px)',
-                      width: 'calc(50% - 4px)'
-                    }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                  <button
-                    onClick={() => setLogTab('arena')}
-                    className={`relative px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                      logTab === 'arena'
-                        ? 'text-white'
-                        : 'text-white/50 hover:text-white/80'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Swords className="w-4 h-4" />
-                      BATTLE LOG
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setLogTab('my')}
-                    className={`relative px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                      logTab === 'my'
-                        ? 'text-white'
-                        : 'text-white/50 hover:text-white/80'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      SQUAD LOG
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative overflow-hidden">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={logTab}
-                    initial={{ opacity: 0, y: 15, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -15, scale: 0.98 }}
-                    transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-                    className="p-4"
-                  >
-                    <BattleLog
-                      logs={logTab === 'arena' ? arena.battleLogs : myBattleLogs}
-                      maxHeight="280px"
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-             */}
           </div>
           
-          {/* 右侧：我的小队 */}
-          <div className="lg:col-span-1 h-full min-h-0">
-            {/* 小队概览 - 高度与左侧对齐 */}
+          {/* 我的小队 */}
+          <div className="lg:col-span-1 flex-shrink-0 lg:flex-shrink lg:h-full lg:min-h-0">
+            {/* 小队概览 - 移动端高度自适应，桌面端填满 */}
             <div 
-              className="card-luxury rounded-2xl overflow-hidden flex flex-col w-full h-full"
+              className="card-luxury rounded-2xl overflow-hidden flex flex-col w-full h-auto lg:h-full"
             >
               {/* 标题栏 + 铸造按钮 */}
-              <div className="px-6 h-[72px] border-b border-white/5 flex items-center justify-between flex-shrink-0">
+              <div className="px-4 lg:px-6 h-[56px] lg:h-[72px] border-b border-white/5 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-lg font-semibold text-white">MY SQUAD</h2>
+                  <h2 className="text-base lg:text-lg font-semibold text-white">MY SQUAD</h2>
                 </div>
                 {/* 铸造按钮移到标题右侧 */}
                 {wallet.connected && myAgents.length < 30 && (
                   <button
                     onClick={handleCreateAgent}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-luxury-purple/10 border border-luxury-purple/30 rounded-lg text-luxury-purple-light hover:bg-luxury-purple/20 transition-colors"
+                    className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-luxury-purple/10 border border-luxury-purple/30 rounded-lg text-luxury-purple-light hover:bg-luxury-purple/20 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    <span className="text-xs font-medium">{t('squad.mint')}</span>
+                    <span className="text-xs font-medium hidden sm:inline">{t('squad.mint')}</span>
                   </button>
                 )}
               </div>
 
               {/* 内容区域 - 可滚动 */}
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar max-h-[300px] lg:max-h-none">
                 {!wallet.connected ? (
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 rounded-2xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-4">
-                      <Wallet className="w-10 h-10 text-white/20" />
+                  <div className="text-center py-8 lg:py-12">
+                    <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-4">
+                      <Wallet className="w-8 h-8 lg:w-10 lg:h-10 text-white/20" />
                     </div>
                     <p className="text-white/40 mb-2">{t('wallet.connectFirst')}</p>
                     <p className="text-xs text-white/20">{t('wallet.connectDesc')}</p>
                   </div>
                 ) : myAgents.length === 0 ? (
                   /* 空状态 - 快捷创建入口 */
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 rounded-2xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-4">
-                      <Users className="w-10 h-10 text-white/20" />
+                  <div className="text-center py-8 lg:py-12">
+                    <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-void-light/50 border border-white/5 flex items-center justify-center mx-auto mb-4">
+                      <Users className="w-8 h-8 lg:w-10 lg:h-10 text-white/20" />
                     </div>
                     <p className="text-white/40 mb-4">{t('squad.noAgents')}</p>
                     <button
