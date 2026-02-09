@@ -9,6 +9,7 @@ import {
 import { generateRandomAgent, generateSystemAgents, TOURNAMENT_SYSTEM_AGENTS } from '../utils/agentGenerator';
 import { useNotificationStore } from './notificationStore';
 import { AgentService, UserService, TransactionService, DataTransformers } from '../services/database';
+import { supabase } from '../lib/supabase';
 
 interface GameStore {
   // 钱包状态
@@ -247,7 +248,52 @@ export const useGameStore = create<GameStore>()(
     try {
       // 使用用户昵称生成 Agent 名称
       const userNickname = wallet.nickname;
-      const userId = wallet.userId || wallet.address || 'anonymous';
+      let userId = wallet.userId || wallet.address || 'anonymous';
+      
+      // 检查 userId 是否是 UUID 格式，如果不是，尝试从 Supabase 获取真实用户ID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        console.log('[Mint] User ID is not UUID format, fetching from Supabase...');
+        // 尝试通过 wallet address 查找用户
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('wallet_address', wallet.address)
+          .single();
+        
+        if (userError || !userData) {
+          console.error('[Mint] Failed to get user ID from Supabase:', userError);
+          // 如果找不到用户，创建一个
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              wallet_address: wallet.address,
+              username: wallet.nickname,
+              avatar: wallet.avatar,
+              balance: wallet.balance,
+            })
+            .select('id')
+            .single();
+          
+          if (createError || !newUser) {
+            console.error('[Mint] Failed to create user:', createError);
+            return null;
+          }
+          userId = newUser.id;
+          console.log('[Mint] Created new user with ID:', userId);
+        } else {
+          userId = userData.id;
+          console.log('[Mint] Found existing user with ID:', userId);
+        }
+        
+        // 更新 store 中的 userId
+        set((state) => ({
+          wallet: {
+            ...state.wallet,
+            userId: userId,
+          }
+        }));
+      }
 
       console.log('[Mint] Starting mint process...');
       console.log('[Mint] User ID:', userId);
