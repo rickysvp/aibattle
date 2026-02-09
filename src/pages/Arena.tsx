@@ -260,15 +260,16 @@ const Arena: React.FC = () => {
         // ===== 5. 结算阶段 =====
         syncPhaseToStore('settlement');
 
-        // 模拟战斗结果（实际应该从后台战斗结果获取）
-        const userAgentId = hasUserAgents ? selectedParticipants.find(p => myArenaAgents.some(ma => ma.id === p.id))?.id : null;
+        // 获取战斗结束时的实际结果（基于余额）
+        const battleEndState = useGameStore.getState();
         const results = selectedParticipants.map(p => {
-          const isUserAgent = p.id === userAgentId;
-          // 用户的Agent有更高概率获胜
-          const winProbability = isUserAgent ? 0.4 : 0.1;
-          const survived = Math.random() < (0.3 + winProbability);
-          const profit = survived ? Math.floor(Math.random() * 500) : -Math.floor(Math.random() * 300);
-          return { agent: p, profit, survived };
+          const currentAgent = battleEndState.myAgents.find(a => a.id === p.id) ||
+                               battleEndState.systemAgents.find(a => a.id === p.id);
+          // 有余额的Agent存活，余额为0的被淘汰
+          const survived = currentAgent ? currentAgent.balance > 0 : false;
+          // 计算实际收益（基于余额变化）
+          const profit = currentAgent ? currentAgent.balance - p.balance : 0;
+          return { agent: currentAgent || p, profit, survived };
         });
 
         // 排序获取TOP3

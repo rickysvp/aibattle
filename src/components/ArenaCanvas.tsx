@@ -151,9 +151,9 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
 
         const damage = Math.max(1, isCrit ? Math.floor(baseDamage * 1.5) : baseDamage);
 
-        // 计算掠夺资金 (造成伤害的数值)
-        const lootAmount = damage;
-        const newTargetBalance = Math.max(0, latestTarget.balance - lootAmount);
+        // 计算掠夺资金 (实际从目标身上拿走的金额，不能超过目标余额)
+        const lootAmount = Math.min(damage, latestTarget.balance);
+        const newTargetBalance = latestTarget.balance - lootAmount;
         const newAttackerBalance = latestAttacker.balance + lootAmount;
 
         // 设置受伤动画
