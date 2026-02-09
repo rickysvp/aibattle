@@ -424,7 +424,7 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
                   <PixelAgent
                     agent={participant}
                     size={60}
-                    showBalance={phase === 'fighting' || phase === 'settlement'}
+                    showBalance={true}
                     isAttacking={isAttacking}
                     isHurt={isHurt}
                     isDefending={isDefending}
