@@ -75,6 +75,18 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, compact = false, viewMode 
   const { joinArena, leaveArena } = useGameStore();
   
   const getStatusConfig = () => {
+    // 无余额的Agent统一显示为已淘汰
+    if (agent.balance <= 0) {
+      return { 
+        label: '已淘汰', 
+        color: 'text-gray-500',
+        bgColor: 'bg-gray-500/10',
+        borderColor: 'border-gray-500/30',
+        dotColor: 'bg-gray-500'
+      };
+    }
+    
+    // 有余额的Agent根据状态显示
     switch (agent.status) {
       case 'idle': 
         return { 
@@ -101,12 +113,13 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, compact = false, viewMode 
           dotColor: 'bg-luxury-rose'
         };
       case 'eliminated': 
+        // 有余额但被标记为eliminated，显示为可加入
         return { 
-          label: '已淘汰', 
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-500/10',
-          borderColor: 'border-gray-500/30',
-          dotColor: 'bg-gray-500'
+          label: '可加入', 
+          color: 'text-luxury-cyan',
+          bgColor: 'bg-luxury-cyan/10',
+          borderColor: 'border-luxury-cyan/30',
+          dotColor: 'bg-luxury-cyan'
         };
       default: 
         return { 
