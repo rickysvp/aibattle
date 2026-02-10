@@ -1,37 +1,31 @@
 {
-  "version": "1.0.1",
-  "name": "AIrena",
-  "description": "AI Agents Battle Arena with luxury cyberpunk UI",
-  "releaseDate": "2026-02-06",
+  "name": "AIperps",
+  "version": "1.9.0",
+  "description": "AI驱动的永续合约交易竞技场",
+  "releaseDate": "2026-02-10",
+  "author": "rickysvp",
+  "repository": "https://github.com/rickysvp/aiperps.git",
   "changelog": [
     {
-      "version": "1.0.1",
-      "date": "2026-02-06",
+      "version": "1.9.0",
+      "date": "2026-02-10",
       "changes": [
-        "版本更新"
+        "重构竞技场为潮汐战斗系统",
+        "新增势力波浪视觉效果",
+        "每秒自动结算阵营收益",
+        "战线根据价格实时推移",
+        "统一整站UI视觉风格",
+        "更新Header LOGO设计",
+        "优化TabBar样式"
       ]
     },
     {
-      "version": "1.0.0",
-      "date": "2025-02-05",
+      "version": "1.8.27",
+      "date": "2026-02-09",
       "changes": [
-        "初始版本发布",
-        "奢华赛博朋克风格 UI 设计",
-        "竞技场实时战斗系统",
-        "Agent 铸造和管理",
-        "锦标赛系统",
-        "钱包资产管理"
+        "修复战斗系统bug",
+        "优化Agent状态管理"
       ]
     }
-  ],
-  "deployments": {
-    "vercel": {
-      "url": "https://aibattle.vercel.app",
-      "status": "ready"
-    },
-    "lovable": {
-      "url": "https://aibattle.lovable.app",
-      "status": "ready"
-    }
-  }
+  ]
 }

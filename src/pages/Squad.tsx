@@ -3,10 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../store/gameStore';
 import { Agent } from '../types';
 import {
-  Users, Plus, Filter, TrendingUp, TrendingDown, Wallet,
-  Swords, CheckSquare, Square, ArrowUpRight, ArrowDownRight,
-  Target, Zap, BarChart3, ChevronRight, Settings2, Trash2,
-  ArrowRightLeft, LogOut
+  Users, Plus, TrendingUp, TrendingDown, Wallet,
+  Swords, CheckSquare, Settings2, Trash2
 } from 'lucide-react';
 
 const Squad: React.FC = () => {
@@ -96,14 +94,14 @@ const Squad: React.FC = () => {
 
   if (!wallet.connected) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0f] to-[#050508] flex items-center justify-center">
+      <div className="min-h-screen bg-[#050508] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mx-auto mb-6">
-            <Wallet className="w-10 h-10 text-purple-400" />
+          <div className="w-20 h-20 rounded-2xl bg-[#12121a] border border-[#3b82f6]/30 flex items-center justify-center mx-auto mb-6">
+            <Wallet className="w-10 h-10 text-[#60a5fa]" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">连接钱包</h2>
           <p className="text-white/40 mb-8">请先连接钱包以管理您的交易小队</p>
-          <button className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-medium transition-all">
+          <button className="btn-primary">
             连接钱包
           </button>
         </div>
@@ -112,7 +110,7 @@ const Squad: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0f] to-[#050508] pt-20 pb-24">
+    <div className="min-h-screen bg-[#050508] pt-20 pb-24">
       <div className="max-w-7xl mx-auto px-4">
         {/* 统计概览 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -120,13 +118,13 @@ const Squad: React.FC = () => {
             icon={Users}
             label="总Agents"
             value={myAgents.length}
-            color="purple"
+            color="blue"
           />
           <StatCard
             icon={Wallet}
             label="总余额"
             value={`$${stats.totalBalance.toLocaleString()}`}
-            color="amber"
+            color="purple"
           />
           <StatCard
             icon={stats.totalProfit >= 0 ? TrendingUp : TrendingDown}
@@ -135,7 +133,7 @@ const Squad: React.FC = () => {
             color={stats.totalProfit >= 0 ? 'green' : 'red'}
           />
           <StatCard
-            icon={Zap}
+            icon={Swords}
             label="平均杠杆"
             value={`${stats.avgLeverage}x`}
             color="cyan"
@@ -143,27 +141,27 @@ const Squad: React.FC = () => {
         </div>
 
         {/* 多空分布 */}
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 mb-8">
+        <div className="card card-hover p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white">持仓分布</h3>
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="w-3 h-3 rounded-full bg-[#22c55e]" />
                 做多 {longAgents.length}
               </span>
               <span className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="w-3 h-3 rounded-full bg-[#ef4444]" />
                 做空 {shortAgents.length}
               </span>
             </div>
           </div>
           <div className="h-4 bg-white/5 rounded-full overflow-hidden flex">
             <div
-              className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all"
+              className="h-full bg-gradient-to-r from-[#16a34a] to-[#4ade80] transition-all"
               style={{ width: `${myAgents.length ? (longAgents.length / myAgents.length) * 100 : 50}%` }}
             />
             <div
-              className="h-full bg-gradient-to-r from-red-400 to-red-600 transition-all"
+              className="h-full bg-gradient-to-r from-[#f87171] to-[#dc2626] transition-all"
               style={{ width: `${myAgents.length ? (shortAgents.length / myAgents.length) * 100 : 50}%` }}
             />
           </div>
@@ -174,11 +172,11 @@ const Squad: React.FC = () => {
         </div>
 
         {/* 快速铸造 */}
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 mb-8">
+        <div className="card card-hover p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <Plus className="w-6 h-6 text-purple-400" />
+              <div className="w-12 h-12 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center">
+                <Plus className="w-6 h-6 text-[#60a5fa]" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">铸造新 Agent</h3>
@@ -192,7 +190,9 @@ const Squad: React.FC = () => {
                     key={n}
                     onClick={() => setMintCount(n)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                      mintCount === n ? 'bg-purple-500 text-white' : 'text-white/60 hover:text-white'
+                      mintCount === n 
+                        ? 'bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white' 
+                        : 'text-white/60 hover:text-white'
                     }`}
                   >
                     {n}
@@ -202,7 +202,7 @@ const Squad: React.FC = () => {
               <button
                 onClick={handleMint}
                 disabled={isMinting || wallet.balance < mintCost * mintCount}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all disabled:opacity-50"
+                className="btn-primary disabled:opacity-50"
               >
                 {isMinting ? '铸造中...' : `铸造 (${mintCost * mintCount} $MON)`}
               </button>
@@ -218,7 +218,9 @@ const Squad: React.FC = () => {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filter === f ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white'
+                  filter === f 
+                    ? 'bg-white/10 text-white' 
+                    : 'text-white/50 hover:text-white'
                 }`}
               >
                 {f === 'all' ? '全部' : f === 'idle' ? '空闲' : f === 'in_arena' ? '竞技场' : f === 'fighting' ? '战斗中' : '已爆仓'}
@@ -230,7 +232,7 @@ const Squad: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+              className="input text-sm"
             >
               <option value="balance">余额</option>
               <option value="profit">盈亏</option>
@@ -242,7 +244,7 @@ const Squad: React.FC = () => {
 
         {/* 批量操作栏 */}
         {selectedAgents.size > 0 && (
-          <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 mb-6 flex items-center justify-between">
+          <div className="bg-[#3b82f6]/10 border border-[#3b82f6]/30 rounded-xl p-4 mb-6 flex items-center justify-between">
             <span className="text-white font-medium">已选择 {selectedAgents.size} 个 Agent</span>
             <div className="flex items-center gap-2">
               <input
@@ -250,17 +252,17 @@ const Squad: React.FC = () => {
                 placeholder="金额"
                 value={actionAmount}
                 onChange={(e) => setActionAmount(e.target.value)}
-                className="w-24 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white"
+                className="input w-24 text-sm"
               />
               <button
                 onClick={handleBatchDeposit}
-                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-sm font-medium"
+                className="btn-secondary text-sm bg-[#22c55e]/10 border-[#22c55e]/30 text-[#4ade80] hover:bg-[#22c55e]/20"
               >
                 批量充值
               </button>
               <button
                 onClick={handleBatchJoin}
-                className="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg text-sm font-medium"
+                className="btn-secondary text-sm bg-[#f59e0b]/10 border-[#f59e0b]/30 text-[#fbbf24] hover:bg-[#f59e0b]/20"
               >
                 批量入场
               </button>
@@ -311,11 +313,11 @@ const Squad: React.FC = () => {
 // 统计卡片
 const StatCard = ({ icon: Icon, label, value, color }: { icon: any, label: string, value: string | number, color: string }) => {
   const colors: Record<string, string> = {
-    purple: 'from-purple-500/20 to-purple-600/10 border-purple-500/30 text-purple-400',
-    amber: 'from-amber-500/20 to-amber-600/10 border-amber-500/30 text-amber-400',
-    green: 'from-green-500/20 to-green-600/10 border-green-500/30 text-green-400',
-    red: 'from-red-500/20 to-red-600/10 border-red-500/30 text-red-400',
-    cyan: 'from-cyan-500/20 to-cyan-600/10 border-cyan-500/30 text-cyan-400',
+    blue: 'from-[#3b82f6]/20 to-[#3b82f6]/5 border-[#3b82f6]/30 text-[#60a5fa]',
+    purple: 'from-[#8b5cf6]/20 to-[#8b5cf6]/5 border-[#8b5cf6]/30 text-[#a78bfa]',
+    green: 'from-[#22c55e]/20 to-[#22c55e]/5 border-[#22c55e]/30 text-[#4ade80]',
+    red: 'from-[#ef4444]/20 to-[#ef4444]/5 border-[#ef4444]/30 text-[#f87171]',
+    cyan: 'from-[#06b6d4]/20 to-[#06b6d4]/5 border-[#06b6d4]/30 text-[#22d3ee]',
   };
   return (
     <div className={`bg-gradient-to-br ${colors[color]} border rounded-2xl p-5`}>
@@ -334,7 +336,7 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
   onToggle: () => void;
   onAction: () => void;
 }) => {
-  const { joinArena, leaveArena, allocateFunds, withdrawFromAgent, updateAgentLeverage, removeAgent } = useGameStore();
+  const { joinArena, leaveArena } = useGameStore();
   const [showDetail, setShowDetail] = useState(false);
 
   const pnlPercent = agent.initialBalance > 0
@@ -342,10 +344,10 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
     : 0;
 
   const statusColors = {
-    idle: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
-    in_arena: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-    fighting: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-    liquidated: 'bg-red-500/10 text-red-400 border-red-500/30',
+    idle: 'badge-blue',
+    in_arena: 'badge-amber',
+    fighting: 'badge-purple',
+    liquidated: 'badge-red',
   };
 
   const statusLabels = {
@@ -358,9 +360,7 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
   return (
     <>
       <div
-        className={`group bg-white/[0.02] hover:bg-white/[0.04] border ${
-          isSelected ? 'border-purple-500/50' : 'border-white/[0.06] hover:border-white/[0.12]'
-        } rounded-xl p-4 transition-all cursor-pointer`}
+        className={`card card-hover p-4 cursor-pointer ${isSelected ? 'border-[#8b5cf6]/50' : ''}`}
         onClick={onAction}
         style={{ animationDelay: `${index * 30}ms` }}
       >
@@ -370,7 +370,7 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
             <button
               onClick={(e) => { e.stopPropagation(); onToggle(); }}
               className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                isSelected ? 'bg-purple-500 border-purple-500' : 'border-white/20 hover:border-purple-500'
+                isSelected ? 'bg-[#8b5cf6] border-[#8b5cf6]' : 'border-white/20 hover:border-[#8b5cf6]'
               }`}
             >
               {isSelected && <CheckSquare className="w-3.5 h-3.5 text-white" />}
@@ -392,7 +392,7 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
               )}
             </div>
             <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-              agent.position === 'long' ? 'bg-green-500' : 'bg-red-500'
+              agent.position === 'long' ? 'bg-[#22c55e]' : 'bg-[#ef4444]'
             }`}>
               {agent.position === 'long' ? 'L' : 'S'}
             </div>
@@ -402,13 +402,13 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h4 className="font-semibold text-white">{agent.name}</h4>
-              <span className={`px-2 py-0.5 rounded text-xs border ${statusColors[agent.status]}`}>
+              <span className={`badge ${statusColors[agent.status]}`}>
                 {statusLabels[agent.status]}
               </span>
             </div>
             <div className="flex items-center gap-4 mt-1 text-sm">
-              <span className="font-mono text-amber-400">${agent.balance.toLocaleString()}</span>
-              <span className={`font-mono ${pnlPercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <span className="font-mono text-[#fbbf24]">${agent.balance.toLocaleString()}</span>
+              <span className={`font-mono ${pnlPercent >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
                 {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(1)}%
               </span>
               <span className="text-white/40">{agent.leverage}x 杠杆</span>
@@ -420,7 +420,7 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
             {agent.status === 'idle' && agent.balance > 0 && (
               <button
                 onClick={() => joinArena(agent.id)}
-                className="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg text-sm font-medium transition-colors"
+                className="btn-secondary text-sm bg-[#f59e0b]/10 border-[#f59e0b]/30 text-[#fbbf24] hover:bg-[#f59e0b]/20"
               >
                 入场
               </button>
@@ -428,7 +428,7 @@ const AgentCard = ({ agent, index, isSelected, onToggle, onAction }: {
             {agent.status === 'in_arena' && (
               <button
                 onClick={() => leaveArena(agent.id)}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                className="btn-secondary text-sm bg-[#ef4444]/10 border-[#ef4444]/30 text-[#f87171] hover:bg-[#ef4444]/20"
               >
                 退出
               </button>
@@ -464,7 +464,7 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#0f0f14] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      <div className="card w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* 头部 */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-4">
@@ -492,7 +492,7 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              activeTab === 'overview' ? 'text-white border-b-2 border-purple-500' : 'text-white/40 hover:text-white'
+              activeTab === 'overview' ? 'text-white border-b-2 border-[#3b82f6]' : 'text-white/40 hover:text-white'
             }`}
           >
             概览
@@ -500,7 +500,7 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
           <button
             onClick={() => setActiveTab('settings')}
             className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              activeTab === 'settings' ? 'text-white border-b-2 border-purple-500' : 'text-white/40 hover:text-white'
+              activeTab === 'settings' ? 'text-white border-b-2 border-[#3b82f6]' : 'text-white/40 hover:text-white'
             }`}
           >
             设置
@@ -512,19 +512,19 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
           {activeTab === 'overview' ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/5 rounded-xl p-4">
+                <div className="card p-4">
                   <p className="text-sm text-white/40 mb-1">当前余额</p>
-                  <p className="text-xl font-bold text-amber-400">${agent.balance.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-[#fbbf24]">${agent.balance.toLocaleString()}</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-4">
+                <div className="card p-4">
                   <p className="text-sm text-white/40 mb-1">总盈亏</p>
-                  <p className={`text-xl font-bold ${agent.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className={`text-xl font-bold ${agent.netProfit >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
                     {agent.netProfit >= 0 ? '+' : ''}${agent.netProfit.toLocaleString()}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4">
+              <div className="card p-4">
                 <p className="text-sm text-white/40 mb-3">资金操作</p>
                 <div className="flex gap-2">
                   <input
@@ -532,26 +532,26 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
                     placeholder="金额"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white"
+                    className="input flex-1"
                   />
                   <button
                     onClick={() => { allocateFunds(agent.id, parseFloat(amount)); setAmount(''); }}
                     disabled={!amount || parseFloat(amount) <= 0}
-                    className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg font-medium disabled:opacity-50"
+                    className="btn-secondary bg-[#22c55e]/10 border-[#22c55e]/30 text-[#4ade80] hover:bg-[#22c55e]/20 disabled:opacity-50"
                   >
                     充值
                   </button>
                   <button
                     onClick={() => { withdrawFromAgent(agent.id, parseFloat(amount)); setAmount(''); }}
                     disabled={!amount || parseFloat(amount) <= 0 || parseFloat(amount) > agent.balance}
-                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg font-medium disabled:opacity-50"
+                    className="btn-secondary bg-[#ef4444]/10 border-[#ef4444]/30 text-[#f87171] hover:bg-[#ef4444]/20 disabled:opacity-50"
                   >
                     提现
                   </button>
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4">
+              <div className="card p-4">
                 <p className="text-sm text-white/40 mb-3">交易统计</p>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
@@ -571,7 +571,7 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-white/5 rounded-xl p-4">
+              <div className="card p-4">
                 <p className="text-sm text-white/40 mb-3">调整杠杆</p>
                 <div className="flex flex-wrap gap-2">
                   {leverages.map(l => (
@@ -580,8 +580,8 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
                       onClick={() => updateAgentLeverage(agent.id, l)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         agent.leverage === l
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-white/10 text-white/60 hover:text-white'
+                          ? 'bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white'
+                          : 'bg-white/5 text-white/60 hover:text-white'
                       }`}
                     >
                       {l}x
@@ -590,11 +590,11 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4">
+              <div className="card p-4">
                 <p className="text-sm text-white/40 mb-3">危险操作</p>
                 <button
                   onClick={() => { removeAgent(agent.id); onClose(); }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg font-medium transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#ef4444]/10 hover:bg-[#ef4444]/20 text-[#f87171] rounded-lg font-medium transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                   删除 Agent
@@ -612,23 +612,23 @@ const AgentDetailModal = ({ agent, onClose }: { agent: Agent; onClose: () => voi
 const ActionModal = ({ agent, onClose }: { agent: Agent; onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#0f0f14] border border-white/10 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="card w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-lg font-bold text-white mb-4">选择操作</h3>
         <div className="space-y-2">
           <button className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
-            <ArrowUpRight className="w-5 h-5 text-green-400" />
+            <TrendingUp className="w-5 h-5 text-[#4ade80]" />
             <span className="text-white">充值资金</span>
           </button>
           <button className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
-            <ArrowDownRight className="w-5 h-5 text-red-400" />
+            <TrendingDown className="w-5 h-5 text-[#f87171]" />
             <span className="text-white">提取资金</span>
           </button>
           <button className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
-            <Settings2 className="w-5 h-5 text-purple-400" />
+            <Settings2 className="w-5 h-5 text-[#a78bfa]" />
             <span className="text-white">调整杠杆</span>
           </button>
           <button className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
-            <BarChart3 className="w-5 h-5 text-amber-400" />
+            <Swords className="w-5 h-5 text-[#fbbf24]" />
             <span className="text-white">查看详情</span>
           </button>
         </div>
