@@ -345,20 +345,32 @@ export const useGameStore = create<GameStore>()(
     }
   },
   
+  // 计算 lockedBalance = 所有 Agents 余额总和
+  calculateLockedBalance: () => {
+    const { myAgents } = get();
+    return myAgents.reduce((sum, a) => sum + a.balance, 0);
+  },
+  
   allocateFunds: (agentId: string, amount: number) => {
     const { wallet } = get();
     if (wallet.balance < amount) return;
     
-    set((state) => ({
-      wallet: { 
-        ...state.wallet, 
-        balance: state.wallet.balance - amount,
-        lockedBalance: state.wallet.lockedBalance + amount,
-      },
-      myAgents: state.myAgents.map(a => 
+    set((state) => {
+      const newMyAgents = state.myAgents.map(a => 
         a.id === agentId ? { ...a, balance: a.balance + amount } : a
-      ),
-    }));
+      );
+      // 重新计算 lockedBalance
+      const newLockedBalance = newMyAgents.reduce((sum, a) => sum + a.balance, 0);
+      
+      return {
+        wallet: { 
+          ...state.wallet, 
+          balance: state.wallet.balance - amount,
+          lockedBalance: newLockedBalance,
+        },
+        myAgents: newMyAgents,
+      };
+    });
     
     useNotificationStore.getState().addNotification('success', `Allocated ${amount} MON to agent`, 'Funds Allocated');
   },
@@ -368,16 +380,22 @@ export const useGameStore = create<GameStore>()(
     // 只有不在战斗中才能提现
     if (!agent || agent.balance < amount || agent.status === 'fighting') return;
     
-    set((state) => ({
-      wallet: { 
-        ...state.wallet, 
-        balance: state.wallet.balance + amount,
-        lockedBalance: Math.max(0, state.wallet.lockedBalance - amount),
-      },
-      myAgents: state.myAgents.map(a => 
+    set((state) => {
+      const newMyAgents = state.myAgents.map(a => 
         a.id === agentId ? { ...a, balance: a.balance - amount } : a
-      ),
-    }));
+      );
+      // 重新计算 lockedBalance
+      const newLockedBalance = newMyAgents.reduce((sum, a) => sum + a.balance, 0);
+      
+      return {
+        wallet: { 
+          ...state.wallet, 
+          balance: state.wallet.balance + amount,
+          lockedBalance: newLockedBalance,
+        },
+        myAgents: newMyAgents,
+      };
+    });
     
     useNotificationStore.getState().addNotification('success', `Withdrew ${amount} MON from agent`, 'Funds Withdrawn');
   },
@@ -525,20 +543,32 @@ export const useGameStore = create<GameStore>()(
   },
   
   updateParticipant: (agentId: string, updates: Partial<Agent>) => {
-    set((state) => ({
-      arena: {
-        ...state.arena,
-        participants: state.arena.participants.map(a =>
+    set((state) => {
+      const newMyAgents = state.myAgents.map(a =>
+        a.id === agentId ? { ...a, ...updates } : a
+      );
+      // 如果更新了余额，重新计算 lockedBalance
+      const newLockedBalance = updates.balance !== undefined
+        ? newMyAgents.reduce((sum, a) => sum + a.balance, 0)
+        : state.wallet.lockedBalance;
+      
+      return {
+        arena: {
+          ...state.arena,
+          participants: state.arena.participants.map(a =>
+            a.id === agentId ? { ...a, ...updates } : a
+          ),
+        },
+        myAgents: newMyAgents,
+        systemAgents: state.systemAgents.map(a =>
           a.id === agentId ? { ...a, ...updates } : a
         ),
-      },
-      myAgents: state.myAgents.map(a =>
-        a.id === agentId ? { ...a, ...updates } : a
-      ),
-      systemAgents: state.systemAgents.map(a =>
-        a.id === agentId ? { ...a, ...updates } : a
-      ),
-    }));
+        wallet: {
+          ...state.wallet,
+          lockedBalance: newLockedBalance,
+        }
+      };
+    });
   },
   
   setTop3: (top3) => {
@@ -1754,6 +1784,17 @@ export const useGameStore = create<GameStore>()(
       const newRounds = state.totalSystemRounds + 1;
       console.log('[AutoBattle] 战斗完成，轮次增加到:', newRounds);
       return { totalSystemRounds: newRounds };
+    });
+    
+    // 重新计算 lockedBalance（因为 Agents 余额可能变化）
+    set((state) => {
+      const newLockedBalance = state.myAgents.reduce((sum, a) => sum + a.balance, 0);
+      return {
+        wallet: {
+          ...state.wallet,
+          lockedBalance: newLockedBalance,
+        }
+      };
     });
   },
 
