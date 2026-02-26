@@ -254,6 +254,12 @@ export interface LiquidityStake {
   rewards: number;
   unlockTime: number;
   lastClaimTime: number;
+  // 累计获得的手续费收益
+  totalFeeEarnings: number;
+  // 上次结算时间
+  lastSettlementTime: number;
+  // 收益记录
+  earnings: LiquidityEarning[];
 }
 
 // 流动性池
@@ -263,46 +269,17 @@ export interface LiquidityPool {
   apr: number;
   rewardRate: number;
   stakerCount: number;
+  // 手续费收益池
+  feeRevenuePool: number;
+  // 累计分配的手续费
+  totalFeeDistributed: number;
 }
 
-// ==================== 预测市场类型 ====================
-
-// 预测下注
-export interface PredictionBet {
+// 流动性收益记录
+export interface LiquidityEarning {
   id: string;
-  userId: string;
-  marketId: string;
-  tournamentId: string;
-  predictedAgentId: string;
-  betAmount: number;
-  betType: 'semifinal' | 'final' | 'match';
-  odds: number;
-  status: 'pending' | 'won' | 'lost';
-  potentialWin: number;
-  createdAt: number;
-}
-
-// 预测市场
-export interface PredictionMarket {
-  id: string;
-  tournamentId: string;
-  matchId?: string;
-  name: string;
-  totalPool: number;
-  odds: Record<string, number>;
-  status: 'open' | 'closed' | 'settled';
-  deadline: number;
-  betType: 'semifinal' | 'final' | 'match';
-  participants: string[];
-}
-
-// 自动下注规则
-export interface AutoBetRule {
-  enabled: boolean;
-  betAmount: number;
-  strategy: 'always' | 'top_ranked' | 'specified';
-  maxBetsPerDay: number;
-  specifiedAgentIds?: string[];
-  minOdds?: number;
-  maxOdds?: number;
+  stakeId: string;
+  amount: number;
+  timestamp: number;
+  source: 'fee' | 'reward';
 }

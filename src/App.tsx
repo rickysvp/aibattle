@@ -8,7 +8,6 @@ import Squad from './pages/Squad';
 import Wallet from './pages/Wallet';
 import Leaderboard from './pages/Leaderboard';
 import LiquidityMining from './pages/LiquidityMining';
-import PredictionMarket from './pages/PredictionMarket';
 import NotificationContainer from './components/NotificationContainer';
 import { useGameStore } from './store/gameStore';
 
@@ -40,7 +39,6 @@ const App: React.FC = () => {
           <Route path="/" element={<Arena />} />
           <Route path="/arena" element={<Arena />} />
           <Route path="/mining" element={<LiquidityMining />} />
-          <Route path="/predict" element={<PredictionMarket />} />
           <Route path="/tournament" element={<Tournament />} />
           <Route path="/squad" element={<Squad />} />
           <Route path="/wallet" element={<Wallet />} />

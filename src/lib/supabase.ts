@@ -19,8 +19,8 @@ export const TABLES = {
   BATTLES: 'battles',
   BATTLE_LOGS: 'battle_logs',
   TRANSACTIONS: 'transactions',
-  PREDICTION_MARKETS: 'prediction_markets',
-  PREDICTION_BETS: 'prediction_bets',
+  LIQUIDITY_STAKES: 'liquidity_stakes',
+  LIQUIDITY_POOL: 'liquidity_pool',
 } as const;
 
 // 类型定义
@@ -112,9 +112,36 @@ export interface DatabaseTransaction {
   id: string;
   user_id?: string;
   agent_id?: string;
-  type: 'mint' | 'deposit' | 'withdraw' | 'battle_reward' | 'battle_loss' | 'prediction_bet' | 'prediction_win';
+  type: 'mint' | 'deposit' | 'withdraw' | 'battle_reward' | 'battle_loss' | 'prediction_bet' | 'prediction_win' | 'liquidity_stake' | 'liquidity_unstake' | 'liquidity_reward';
   amount: number;
   status: 'pending' | 'completed' | 'failed';
   tx_hash?: string;
   created_at: string;
+}
+
+// 流动性质押记录
+export interface DatabaseLiquidityStake {
+  id: string;
+  user_id: string;
+  user_address: string;
+  amount: number;
+  staked_at: string;
+  unlock_time: string;
+  last_claim_time: string;
+  total_fee_earnings: number;
+  status: 'active' | 'unstaked';
+  created_at: string;
+  updated_at: string;
+}
+
+// 流动性池全局状态
+export interface DatabaseLiquidityPool {
+  id: number; // 只有一条记录，id=1
+  total_staked: number;
+  total_rewards: number;
+  apr: number;
+  staker_count: number;
+  fee_revenue_pool: number;
+  total_fee_distributed: number;
+  updated_at: string;
 }

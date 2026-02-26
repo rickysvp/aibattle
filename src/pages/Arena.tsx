@@ -79,6 +79,7 @@ const Arena: React.FC = () => {
     systemAgents,
     wallet,
     myBattleLogs,
+    platformRevenue,
     initializeArena,
     setArenaPhase,
     addBattleLog,
@@ -425,15 +426,25 @@ const Arena: React.FC = () => {
                     {t('arena.round')} {displayBattleRound.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 px-2 lg:px-3 py-1.5 bg-luxury-green/5 border border-luxury-green/20 rounded-full">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-luxury-green opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-luxury-green"></span>
-                  </span>
-                  <Users className="w-3.5 h-3.5 text-luxury-green" />
-                  <span className="text-xs font-semibold text-luxury-green font-mono">
-                    {systemAgents.filter(a => a.status === 'in_arena').length + myArenaAgents.length}
-                  </span>
+                <div className="flex items-center gap-2">
+                  {/* 平台收入显示 */}
+                  <div className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-luxury-purple/10 border border-luxury-purple/30 rounded-full" title="Platform Revenue (2% fee from winners)">
+                    <span className="text-xs text-luxury-purple font-medium">Platform</span>
+                    <span className="text-xs font-semibold text-luxury-purple font-mono">
+                      {platformRevenue.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-luxury-purple/70">MON</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 lg:px-3 py-1.5 bg-luxury-green/5 border border-luxury-green/20 rounded-full">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-luxury-green opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-luxury-green"></span>
+                    </span>
+                    <Users className="w-3.5 h-3.5 text-luxury-green" />
+                    <span className="text-xs font-semibold text-luxury-green font-mono">
+                      {systemAgents.filter(a => a.status === 'in_arena').length + myArenaAgents.length}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="aspect-[4/3] lg:flex-1 lg:aspect-auto p-2 lg:p-4 relative min-h-0">

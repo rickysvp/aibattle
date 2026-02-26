@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Swords, Trophy, Users, Wallet, Target } from 'lucide-react';
+import { Swords, Trophy, Users, Wallet, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface TabItem {
@@ -27,13 +27,6 @@ const TabBar: React.FC = () => {
       gradient: 'from-rose-500 via-pink-500 to-purple-500'
     },
     {
-      path: '/predict',
-      icon: Target,
-      label: t('nav.predict'),
-      color: '#ec4899',
-      gradient: 'from-pink-500 via-rose-500 to-red-500'
-    },
-    {
       path: '/tournament',
       icon: Trophy,
       label: t('nav.tournament'),
@@ -46,6 +39,13 @@ const TabBar: React.FC = () => {
       label: t('nav.squad'),
       color: '#06b6d4',
       gradient: 'from-cyan-400 via-blue-500 to-indigo-500'
+    },
+    {
+      path: '/mining',
+      icon: Droplets,
+      label: '流动性',
+      color: '#f59e0b',
+      gradient: 'from-amber-400 via-orange-500 to-yellow-500'
     },
     {
       path: '/wallet',

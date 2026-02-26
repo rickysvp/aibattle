@@ -66,19 +66,24 @@ const Squad: React.FC = () => {
     setIsMinting(true);
     setMintedAgents([]);
 
-    // 播放铸造动画
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // 播放铸造动画
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const newAgents: Agent[] = [];
-    for (let i = 0; i < mintCount; i++) {
-      const agent = await mintAgent();
-      if (agent) {
-        newAgents.push(agent);
+      const newAgents: Agent[] = [];
+      for (let i = 0; i < mintCount; i++) {
+        const agent = await mintAgent();
+        if (agent) {
+          newAgents.push(agent);
+        }
       }
-    }
 
-    setMintedAgents(newAgents);
-    setIsMinting(false);
+      setMintedAgents(newAgents);
+    } catch (error) {
+      console.error('Mint failed:', error);
+    } finally {
+      setIsMinting(false);
+    }
   };
   
   const toggleAgentSelection = (agentId: string) => {

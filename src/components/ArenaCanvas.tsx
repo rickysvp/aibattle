@@ -29,7 +29,7 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
   const participants = useGameStore(state => state.arena.participants);
   const addBattleLog = useGameStore(state => state.addBattleLog);
   const updateParticipant = useGameStore(state => state.updateParticipant);
-  
+
   // 战斗动画循环 - 使用余额作为血量
   useEffect(() => {
     if (phase !== 'fighting') return;
@@ -198,7 +198,7 @@ const ArenaCanvas: React.FC<ArenaCanvasProps> = ({
         const isEliminated = newTargetBalance <= 0;
         updateParticipant(target.id, { 
           balance: newTargetBalance, 
-          status: isEliminated ? 'eliminated' : 'fighting' 
+          status: isEliminated ? 'eliminated' : 'in_arena' 
         });
 
         // 更新攻击者余额（增加）

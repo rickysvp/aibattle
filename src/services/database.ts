@@ -1,4 +1,4 @@
-import { supabase, TABLES, DatabaseAgent, DatabaseUser, DatabaseBattle, DatabaseBattleLog, DatabaseTransaction } from '../lib/supabase';
+import { supabase, TABLES, DatabaseAgent, DatabaseUser, DatabaseBattle, DatabaseBattleLog, DatabaseTransaction, DatabaseLiquidityStake, DatabaseLiquidityPool } from '../lib/supabase';
 import { Agent } from '../types';
 
 // ==================== Agent 服务 ====================
@@ -281,6 +281,113 @@ export const TransactionService = {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  },
+};
+
+// ==================== Liquidity 服务 ====================
+export const LiquidityService = {
+  // 获取流动性池状态
+  async getLiquidityPool(): Promise<DatabaseLiquidityPool | null> {
+    const { data, error } = await supabase
+      .from(TABLES.LIQUIDITY_POOL)
+      .select('*')
+      .eq('id', 1)
+      .single();
+
+    if (error) {
+      console.error('Error fetching liquidity pool:', error);
+      return null;
+    }
+    return data;
+  },
+
+  // 更新流动性池
+  async updateLiquidityPool(updates: Partial<DatabaseLiquidityPool>): Promise<void> {
+    const { error } = await supabase
+      .from(TABLES.LIQUIDITY_POOL)
+      .upsert({
+        id: 1,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) throw error;
+  },
+
+  // 创建质押记录
+  async createStake(stake: Partial<DatabaseLiquidityStake>): Promise<DatabaseLiquidityStake> {
+    const { data, error } = await supabase
+      .from(TABLES.LIQUIDITY_STAKES)
+      .insert(stake)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // 获取用户的活跃质押
+  async getUserActiveStakes(userAddress: string): Promise<DatabaseLiquidityStake[]> {
+    const { data, error } = await supabase
+      .from(TABLES.LIQUIDITY_STAKES)
+      .select('*')
+      .eq('user_address', userAddress)
+      .eq('status', 'active')
+      .order('staked_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // 获取用户的所有质押（包括已解押）
+  async getUserAllStakes(userAddress: string): Promise<DatabaseLiquidityStake[]> {
+    const { data, error } = await supabase
+      .from(TABLES.LIQUIDITY_STAKES)
+      .select('*')
+      .eq('user_address', userAddress)
+      .order('staked_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // 更新质押记录
+  async updateStake(stakeId: string, updates: Partial<DatabaseLiquidityStake>): Promise<void> {
+    const { error } = await supabase
+      .from(TABLES.LIQUIDITY_STAKES)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', stakeId);
+
+    if (error) throw error;
+  },
+
+  // 解押（更新状态为unstaked）
+  async unstake(stakeId: string, feeEarnings: number): Promise<void> {
+    const { error } = await supabase
+      .from(TABLES.LIQUIDITY_STAKES)
+      .update({
+        status: 'unstaked',
+        total_fee_earnings: feeEarnings,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', stakeId);
+
+    if (error) throw error;
+  },
+
+  // 获取所有活跃质押
+  async getAllActiveStakes(): Promise<DatabaseLiquidityStake[]> {
+    const { data, error } = await supabase
+      .from(TABLES.LIQUIDITY_STAKES)
+      .select('*')
+      .eq('status', 'active')
+      .order('staked_at', { ascending: false });
 
     if (error) throw error;
     return data || [];

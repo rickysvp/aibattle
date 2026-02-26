@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import ConnectButton from '../components/ConnectButton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,13 +15,11 @@ import {
   Lock,
   Unlock,
   RefreshCw,
-  Info,
-  ArrowLeft
+  Info
 } from 'lucide-react';
 
 const LiquidityMining: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const {
     wallet,
     liquidityPool,
@@ -30,7 +27,9 @@ const LiquidityMining: React.FC = () => {
     stakeLiquidity,
     unstakeLiquidity,
     claimLiquidityRewards,
-    calculateRewards
+    calculateRewards,
+    calculateFeeEarnings,
+    getRealTimeAPY
   } = useGameStore();
 
   const [stakeAmount, setStakeAmount] = useState<string>('');
@@ -39,9 +38,12 @@ const LiquidityMining: React.FC = () => {
   const [selectedStakeId, setSelectedStakeId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // 计算总质押和总收益
+  // 计算总质押和总收益（基础奖励 + 手续费收益）
   const totalStaked = userStakes.reduce((sum, s) => sum + s.amount, 0);
-  const totalPendingRewards = userStakes.reduce((sum, s) => sum + calculateRewards(s), 0);
+  const totalBaseRewards = userStakes.reduce((sum, s) => sum + calculateRewards(s), 0);
+  const totalFeeEarnings = userStakes.reduce((sum, s) => sum + calculateFeeEarnings(s), 0);
+  const totalPendingRewards = totalBaseRewards + totalFeeEarnings;
+  const realTimeAPY = getRealTimeAPY();
 
   // 显示Toast
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -50,7 +52,7 @@ const LiquidityMining: React.FC = () => {
   };
 
   // 处理质押
-  const handleStake = () => {
+  const handleStake = async () => {
     const amount = parseFloat(stakeAmount);
     if (isNaN(amount) || amount <= 0) {
       showToast(t('liquidity.invalidAmount'), 'error');
@@ -58,14 +60,18 @@ const LiquidityMining: React.FC = () => {
     }
 
     setIsStaking(true);
-    const result = stakeLiquidity(amount);
-    setIsStaking(false);
-
-    if (result.success) {
-      showToast(result.message, 'success');
-      setStakeAmount('');
-    } else {
-      showToast(result.message, 'error');
+    try {
+      const result = await stakeLiquidity(amount);
+      if (result.success) {
+        showToast(result.message, 'success');
+        setStakeAmount('');
+      } else {
+        showToast(result.message, 'error');
+      }
+    } catch (error) {
+      showToast('Failed to stake', 'error');
+    } finally {
+      setIsStaking(false);
     }
   };
 
@@ -75,11 +81,15 @@ const LiquidityMining: React.FC = () => {
     setShowConfirmModal(true);
   };
 
-  const confirmUnstake = () => {
+  const confirmUnstake = async () => {
     if (!selectedStakeId) return;
 
-    const result = unstakeLiquidity(selectedStakeId);
-    showToast(result.message, result.success ? 'success' : 'error');
+    try {
+      const result = await unstakeLiquidity(selectedStakeId);
+      showToast(result.message, result.success ? 'success' : 'error');
+    } catch (error) {
+      showToast('Failed to unstake', 'error');
+    }
     setShowConfirmModal(false);
     setSelectedStakeId(null);
   };
@@ -130,12 +140,6 @@ const LiquidityMining: React.FC = () => {
         {/* 页面标题 */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-2">
-            <button
-              onClick={() => navigate('/wallet')}
-              className="w-12 h-12 rounded-2xl bg-void-light/50 border border-white/10 flex items-center justify-center hover:bg-void-light hover:border-white/20 transition-colors"
-            >
-              <ArrowLeft className="w-6 h-6 text-white/60" />
-            </button>
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-luxury-gold/20 to-luxury-amber/20 border border-luxury-gold/30 flex items-center justify-center">
               <Coins className="w-6 h-6 text-luxury-gold" />
             </div>
@@ -147,7 +151,7 @@ const LiquidityMining: React.FC = () => {
         </div>
 
         {/* 统计卡片 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -173,10 +177,10 @@ const LiquidityMining: React.FC = () => {
               <div className="w-10 h-10 rounded-xl bg-luxury-gold/10 border border-luxury-gold/20 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-luxury-gold" />
               </div>
-              <span className="text-xs text-white/40 uppercase tracking-wider">{t('liquidity.apr')}</span>
+              <span className="text-xs text-white/40 uppercase tracking-wider">APY</span>
             </div>
-            <p className="text-3xl font-bold text-luxury-gold font-mono">{liquidityPool.apr.toFixed(2)}%</p>
-            <p className="text-xs text-white/40 mt-1">{t('liquidity.dynamic')}</p>
+            <p className="text-3xl font-bold text-luxury-gold font-mono">{realTimeAPY.toFixed(2)}%</p>
+            <p className="text-xs text-white/40 mt-1">{t('liquidity.dynamic')} + Fees</p>
           </motion.div>
 
           <motion.div
@@ -209,6 +213,23 @@ const LiquidityMining: React.FC = () => {
             </div>
             <p className="text-3xl font-bold text-luxury-cyan font-mono">{liquidityPool.stakerCount}</p>
             <p className="text-xs text-white/40 mt-1">{t('liquidity.participants')}</p>
+          </motion.div>
+
+          {/* 手续费收益池 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="card-luxury rounded-2xl p-5"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-luxury-rose/10 border border-luxury-rose/20 flex items-center justify-center">
+                <Coins className="w-5 h-5 text-luxury-rose" />
+              </div>
+              <span className="text-xs text-white/40 uppercase tracking-wider">Fee Pool</span>
+            </div>
+            <p className="text-3xl font-bold text-luxury-rose font-mono">{liquidityPool.feeRevenuePool.toFixed(2)}</p>
+            <p className="text-xs text-white/40 mt-1">$MON (50% of fees)</p>
           </motion.div>
         </div>
 
@@ -281,7 +302,12 @@ const LiquidityMining: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-white/60">{t('liquidity.pendingRewards')}</span>
-                  <span className="text-luxury-green font-mono">+{totalPendingRewards.toFixed(4)} MON</span>
+                  <div className="text-right">
+                    <span className="text-luxury-green font-mono">+{totalPendingRewards.toFixed(4)} MON</span>
+                    {totalFeeEarnings > 0 && (
+                      <p className="text-xs text-luxury-rose">({totalFeeEarnings.toFixed(4)} from fees)</p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-white/60">{t('liquidity.stakeCount')}</span>
@@ -314,7 +340,9 @@ const LiquidityMining: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {userStakes.map((stake) => {
-                    const pendingReward = calculateRewards(stake);
+                    const baseReward = calculateRewards(stake);
+                    const feeEarning = calculateFeeEarnings(stake);
+                    const totalReward = baseReward + feeEarning;
                     const isLocked = Date.now() < stake.unlockTime;
 
                     return (
@@ -344,7 +372,10 @@ const LiquidityMining: React.FC = () => {
                           </div>
 
                           <div className="text-right">
-                            <p className="text-luxury-green text-sm">+{pendingReward.toFixed(4)} MON</p>
+                            <p className="text-luxury-green text-sm">+{totalReward.toFixed(4)} MON</p>
+                            {feeEarning > 0 && (
+                              <p className="text-xs text-luxury-rose">({feeEarning.toFixed(4)} from fees)</p>
+                            )}
                             <p className="text-xs text-white/40">
                               {isLocked ? (
                                 <span className="text-luxury-amber">{getRemainingLockTime(stake.unlockTime)}</span>

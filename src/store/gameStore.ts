@@ -2,13 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   Agent, BattleLog, ArenaState, WalletState, Tournament, RoundPhase,
-  LiquidityPool, LiquidityStake, PredictionMarket, PredictionBet, AutoBetRule,
+  LiquidityPool, LiquidityStake, LiquidityEarning,
   TournamentRound, TournamentEntry, TournamentMatch,
   TournamentAutoSettings, TournamentHistory
 } from '../types';
 import { generateRandomAgent, generateSystemAgents, TOURNAMENT_SYSTEM_AGENTS } from '../utils/agentGenerator';
 import { useNotificationStore } from './notificationStore';
-import { AgentService, UserService, TransactionService, DataTransformers } from '../services/database';
+import { AgentService, UserService, TransactionService, DataTransformers, LiquidityService } from '../services/database';
 import { supabase } from '../lib/supabase';
 
 interface GameStore {
@@ -68,22 +68,20 @@ interface GameStore {
   // ==================== 流动性挖矿 ====================
   liquidityPool: LiquidityPool;
   userStakes: LiquidityStake[];
-  stakeLiquidity: (amount: number) => { success: boolean; message: string };
-  unstakeLiquidity: (stakeId: string) => { success: boolean; message: string };
+  stakeLiquidity: (amount: number) => Promise<{ success: boolean; message: string }>;
+  unstakeLiquidity: (stakeId: string) => Promise<{ success: boolean; message: string }>;
   claimLiquidityRewards: () => { success: boolean; amount: number; message: string };
+  // 计算实时收益（包括手续费收益）
   calculateRewards: (stake: LiquidityStake) => number;
+  // 计算手续费收益
+  calculateFeeEarnings: (stake: LiquidityStake) => number;
   getDynamicAPR: () => number;
-
-  // ==================== 预测市场 ====================
-  predictionMarkets: PredictionMarket[];
-  userPredictions: PredictionBet[];
-  autoBetRule: AutoBetRule;
-  placePredictionBet: (marketId: string, agentId: string, amount: number, betType: 'semifinal' | 'final' | 'match') => { success: boolean; message: string };
-  settlePredictionMarket: (marketId: string, winnerId: string) => void;
-  updateOdds: (marketId: string) => void;
-  setAutoBetRule: (rule: Partial<AutoBetRule>) => void;
-  executeAutoBet: () => void;
-  createPredictionMarketForTournament: (tournamentId: string, betType: 'semifinal' | 'final') => void;
+  // 分配手续费到流动性池（50%给LP，50%平台留存）
+  distributeFeeToLiquidityPool: (amount: number) => void;
+  // 每小时结算一次收益
+  settleLiquidityEarnings: () => void;
+  // 获取实时APY（包含手续费收益）
+  getRealTimeAPY: () => number;
 
   // ==================== 后台自动战斗系统 ====================
   autoBattleInterval: number | null;
@@ -91,6 +89,10 @@ interface GameStore {
   stopAutoBattleSystem: () => void;
   simulateAutoBattle: () => void;
   getRandomAgentBattleHistory: (agentId: string) => { battle: any; opponent: Agent | null; result: string; profit: number } | null;
+
+  // ==================== 平台收入 ====================
+  platformRevenue: number;
+  addPlatformRevenue: (amount: number) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -212,6 +214,53 @@ export const useGameStore = create<GameStore>()(
           } catch (agentError) {
             console.error('[Wallet] Failed to load user agents:', agentError);
           }
+
+          // 加载用户的流动性质押
+          try {
+            const userStakes = await LiquidityService.getUserActiveStakes(randomAddress);
+            if (userStakes.length > 0) {
+              const frontendStakes: LiquidityStake[] = userStakes.map(dbStake => ({
+                id: dbStake.id,
+                userId: dbStake.user_address,
+                amount: dbStake.amount,
+                stakedAt: new Date(dbStake.staked_at).getTime(),
+                rewards: 0,
+                unlockTime: new Date(dbStake.unlock_time).getTime(),
+                lastClaimTime: new Date(dbStake.last_claim_time).getTime(),
+                totalFeeEarnings: dbStake.total_fee_earnings,
+                lastSettlementTime: new Date(dbStake.updated_at).getTime(),
+                earnings: [],
+              }));
+              
+              set((state) => ({
+                userStakes: frontendStakes,
+              }));
+              console.log(`[Wallet] Loaded ${userStakes.length} liquidity stakes for user ${nickname}`);
+            }
+          } catch (stakeError) {
+            console.error('[Wallet] Failed to load liquidity stakes:', stakeError);
+          }
+
+          // 加载流动性池状态
+          try {
+            const pool = await LiquidityService.getLiquidityPool();
+            if (pool) {
+              set((state) => ({
+                liquidityPool: {
+                  ...state.liquidityPool,
+                  totalStaked: pool.total_staked,
+                  totalRewards: pool.total_rewards,
+                  apr: pool.apr,
+                  stakerCount: pool.staker_count,
+                  feeRevenuePool: pool.fee_revenue_pool,
+                  totalFeeDistributed: pool.total_fee_distributed,
+                }
+              }));
+              console.log(`[Wallet] Loaded liquidity pool state`);
+            }
+          } catch (poolError) {
+            console.error('[Wallet] Failed to load liquidity pool:', poolError);
+          }
         }
       } catch (error) {
         console.error('[Wallet] Failed to save user:', error);
@@ -248,52 +297,8 @@ export const useGameStore = create<GameStore>()(
     try {
       // 使用用户昵称生成 Agent 名称
       const userNickname = wallet.nickname;
-      let userId = wallet.userId || wallet.address || 'anonymous';
-      
-      // 检查 userId 是否是 UUID 格式，如果不是，尝试从 Supabase 获取真实用户ID
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(userId)) {
-        console.log('[Mint] User ID is not UUID format, fetching from Supabase...');
-        // 尝试通过 wallet address 查找用户
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('wallet_address', wallet.address)
-          .single();
-        
-        if (userError || !userData) {
-          console.error('[Mint] Failed to get user ID from Supabase:', userError);
-          // 如果找不到用户，创建一个
-          const { data: newUser, error: createError } = await supabase
-            .from('users')
-            .insert({
-              wallet_address: wallet.address,
-              username: wallet.nickname,
-              avatar: wallet.avatar,
-              balance: wallet.balance,
-            })
-            .select('id')
-            .single();
-          
-          if (createError || !newUser) {
-            console.error('[Mint] Failed to create user:', createError);
-            return null;
-          }
-          userId = newUser.id;
-          console.log('[Mint] Created new user with ID:', userId);
-        } else {
-          userId = userData.id;
-          console.log('[Mint] Found existing user with ID:', userId);
-        }
-        
-        // 更新 store 中的 userId
-        set((state) => ({
-          wallet: {
-            ...state.wallet,
-            userId: userId,
-          }
-        }));
-      }
+      // 使用 wallet.address 作为 userId（简化逻辑，避免 Supabase 查询阻塞）
+      const userId = wallet.userId || wallet.address || 'anonymous';
 
       console.log('[Mint] Starting mint process...');
       console.log('[Mint] User ID:', userId);
@@ -303,43 +308,41 @@ export const useGameStore = create<GameStore>()(
       const newAgent = generateRandomAgent(true, true, userNickname);
       console.log('[Mint] Generated agent:', newAgent.name);
 
-      // 准备数据库数据
-      const agentData = DataTransformers.toDatabaseAgent(newAgent, userId);
-      console.log('[Mint] Agent data for DB:', agentData);
-
-      // 保存到 Supabase
-      console.log('[Mint] Saving to Supabase...');
-      const dbAgent = await AgentService.createAgent({
-        ...agentData,
-        balance: 0,
-      });
-      console.log('[Mint] Agent saved to DB:', dbAgent.id);
-
-      // 创建交易记录
-      console.log('[Mint] Creating transaction...');
-      await TransactionService.createTransaction({
-        user_id: userId,
-        agent_id: dbAgent.id,
-        type: 'mint',
-        amount: -mintCost,
-        status: 'completed',
-      });
-      console.log('[Mint] Transaction created');
-
-      // 更新本地状态
-      const frontendAgent = DataTransformers.toFrontendAgent(dbAgent);
+      // 直接更新本地状态，不等待 Supabase
       set((state) => ({
         wallet: { ...state.wallet, balance: state.wallet.balance - mintCost },
-        myAgents: [...state.myAgents, frontendAgent],
+        myAgents: [...state.myAgents, newAgent],
       }));
 
+      // 后台异步保存到 Supabase（不阻塞用户体验）
+      (async () => {
+        try {
+          // 准备数据库数据
+          const agentData = DataTransformers.toDatabaseAgent(newAgent, userId);
+          console.log('[Mint] Saving to Supabase...');
+          const dbAgent = await AgentService.createAgent({
+            ...agentData,
+            balance: 0,
+          });
+          console.log('[Mint] Agent saved to DB:', dbAgent.id);
+
+          // 创建交易记录
+          await TransactionService.createTransaction({
+            user_id: userId,
+            agent_id: dbAgent.id,
+            type: 'mint',
+            amount: -mintCost,
+            status: 'completed',
+          });
+        } catch (dbError) {
+          console.error('[Mint] Background save failed:', dbError);
+        }
+      })();
+
       useNotificationStore.getState().addNotification('success', `Minted ${newAgent.name} successfully`, 'Agent Minted');
-      return frontendAgent;
+      return newAgent;
     } catch (error: any) {
       console.error('[Mint] Failed with error:', error);
-      console.error('[Mint] Error message:', error.message);
-      console.error('[Mint] Error code:', error.code);
-      console.error('[Mint] Error details:', error.details);
       useNotificationStore.getState().addNotification('error', `Failed to mint agent: ${error.message}`, 'Error');
       return null;
     }
@@ -660,13 +663,15 @@ export const useGameStore = create<GameStore>()(
     return state.totalSystemRounds + additionalRounds;
   },
 
-  // ==================== 流动性挖矿实现 ====================
+  // ==================== 流动性挖矿实现（重构版）====================
   liquidityPool: {
     totalStaked: 500000,
     totalRewards: 25000,
     apr: 25,
-    rewardRate: 25 / (365 * 24 * 60 * 60 * 100), // 每秒奖励率
+    rewardRate: 25 / (365 * 24 * 60 * 60 * 1000), // 每毫秒奖励率
     stakerCount: 128,
+    feeRevenuePool: 0, // 手续费收益池
+    totalFeeDistributed: 0, // 累计分配的手续费
   },
   userStakes: [],
 
@@ -681,12 +686,73 @@ export const useGameStore = create<GameStore>()(
 
   calculateRewards: (stake: LiquidityStake) => {
     const now = Date.now();
-    const elapsedSeconds = (now - stake.lastClaimTime) / 1000;
+    const elapsedMs = now - stake.lastClaimTime;
     const { liquidityPool } = get();
-    return stake.amount * liquidityPool.rewardRate * elapsedSeconds;
+    return stake.amount * liquidityPool.rewardRate * elapsedMs;
   },
 
-  stakeLiquidity: (amount: number) => {
+  calculateFeeEarnings: (stake: LiquidityStake) => {
+    const { liquidityPool } = get();
+    if (liquidityPool.totalStaked === 0) return 0;
+    const share = stake.amount / liquidityPool.totalStaked;
+    return liquidityPool.feeRevenuePool * share;
+  },
+
+  getRealTimeAPY: () => {
+    const { liquidityPool } = get();
+    const baseAPR = liquidityPool.apr;
+    let feeAPR = 0;
+    if (liquidityPool.totalStaked > 0) {
+      const annualFeeEstimate = liquidityPool.totalFeeDistributed * 365;
+      feeAPR = (annualFeeEstimate / liquidityPool.totalStaked) * 100;
+    }
+    return baseAPR + feeAPR;
+  },
+
+  distributeFeeToLiquidityPool: (amount: number) => {
+    const lpShare = amount * 0.5;
+    const platformShare = amount * 0.5;
+    set((state) => ({
+      platformRevenue: state.platformRevenue + platformShare,
+      liquidityPool: {
+        ...state.liquidityPool,
+        feeRevenuePool: state.liquidityPool.feeRevenuePool + lpShare,
+        totalFeeDistributed: state.liquidityPool.totalFeeDistributed + lpShare,
+      },
+    }));
+  },
+
+  settleLiquidityEarnings: () => {
+    const { userStakes, liquidityPool } = get();
+    if (liquidityPool.feeRevenuePool <= 0 || userStakes.length === 0) return;
+    const now = Date.now();
+    const updatedStakes = userStakes.map((stake) => {
+      const feeEarnings = get().calculateFeeEarnings(stake);
+      if (feeEarnings <= 0) return stake;
+      const newEarning: LiquidityEarning = {
+        id: `earning-${now}-${stake.id}`,
+        stakeId: stake.id,
+        amount: feeEarnings,
+        timestamp: now,
+        source: 'fee',
+      };
+      return {
+        ...stake,
+        totalFeeEarnings: stake.totalFeeEarnings + feeEarnings,
+        lastSettlementTime: now,
+        earnings: [...stake.earnings, newEarning],
+      };
+    });
+    set((state) => ({
+      userStakes: updatedStakes,
+      liquidityPool: {
+        ...state.liquidityPool,
+        feeRevenuePool: 0,
+      },
+    }));
+  },
+
+  stakeLiquidity: async (amount: number) => {
     const { wallet } = get();
 
     if (!wallet.connected) {
@@ -702,33 +768,74 @@ export const useGameStore = create<GameStore>()(
     }
 
     const now = Date.now();
-    const newStake: LiquidityStake = {
-      id: Math.random().toString(36).substr(2, 9),
-      userId: wallet.address,
-      amount,
-      stakedAt: now,
-      rewards: 0,
-      unlockTime: now + 7 * 24 * 60 * 60 * 1000, // 7天锁仓
-      lastClaimTime: now,
-    };
+    const stakeId = Math.random().toString(36).substr(2, 9);
+    
+    try {
+      // 先保存到Supabase
+      const dbStake = await LiquidityService.createStake({
+        id: stakeId,
+        user_id: wallet.userId || wallet.address,
+        user_address: wallet.address,
+        amount: amount,
+        staked_at: new Date(now).toISOString(),
+        unlock_time: new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        last_claim_time: new Date(now).toISOString(),
+        total_fee_earnings: 0,
+        status: 'active',
+      });
 
-    set((state) => ({
-      wallet: { ...state.wallet, balance: state.wallet.balance - amount },
-      liquidityPool: {
-        ...state.liquidityPool,
-        totalStaked: state.liquidityPool.totalStaked + amount,
-        stakerCount: state.userStakes.length + 1,
+      // 创建交易记录
+      await TransactionService.createTransaction({
+        user_id: wallet.userId || wallet.address,
+        type: 'liquidity_stake',
+        amount: -amount,
+        status: 'completed',
+      });
+
+      // 更新流动性池
+      const newTotalStaked = get().liquidityPool.totalStaked + amount;
+      await LiquidityService.updateLiquidityPool({
+        total_staked: newTotalStaked,
+        staker_count: get().userStakes.length + 1,
         apr: get().getDynamicAPR(),
-      },
-      userStakes: [...state.userStakes, newStake],
-    }));
+      });
 
-    useNotificationStore.getState().addNotification('success', `Staked ${amount} MON successfully`, 'Liquidity Staked');
-    return { success: true, message: 'Staked successfully' };
+      // 更新本地状态
+      const newStake: LiquidityStake = {
+        id: dbStake.id,
+        userId: wallet.address,
+        amount,
+        stakedAt: now,
+        rewards: 0,
+        unlockTime: now + 7 * 24 * 60 * 60 * 1000,
+        lastClaimTime: now,
+        totalFeeEarnings: 0,
+        lastSettlementTime: now,
+        earnings: [],
+      };
+
+      set((state) => ({
+        wallet: { ...state.wallet, balance: state.wallet.balance - amount },
+        liquidityPool: {
+          ...state.liquidityPool,
+          totalStaked: newTotalStaked,
+          stakerCount: state.userStakes.length + 1,
+          apr: get().getDynamicAPR(),
+        },
+        userStakes: [...state.userStakes, newStake],
+      }));
+
+      useNotificationStore.getState().addNotification('success', `Staked ${amount} MON successfully`, 'Liquidity Staked');
+      return { success: true, message: 'Staked successfully' };
+    } catch (error) {
+      console.error('[Stake] Failed:', error);
+      useNotificationStore.getState().addNotification('error', 'Failed to stake liquidity', 'Error');
+      return { success: false, message: 'Failed to stake liquidity' };
+    }
   },
 
-  unstakeLiquidity: (stakeId: string) => {
-    const { userStakes } = get();
+  unstakeLiquidity: async (stakeId: string) => {
+    const { wallet, userStakes } = get();
     const stake = userStakes.find((s) => s.id === stakeId);
 
     if (!stake) {
@@ -737,33 +844,65 @@ export const useGameStore = create<GameStore>()(
 
     const now = Date.now();
     const isEarly = now < stake.unlockTime;
-    const penalty = isEarly ? stake.amount * 0.2 : 0; // 提前解质押扣20%
+    const penalty = isEarly ? stake.amount * 0.2 : 0;
     const returnAmount = stake.amount - penalty;
-    const pendingRewards = get().calculateRewards(stake);
+    const baseRewards = get().calculateRewards(stake);
+    const feeEarnings = get().calculateFeeEarnings(stake);
+    const totalRewards = baseRewards + feeEarnings;
 
-    set((state) => ({
-      wallet: {
-        ...state.wallet,
-        balance: state.wallet.balance + returnAmount + pendingRewards,
-      },
-      liquidityPool: {
-        ...state.liquidityPool,
-        totalStaked: state.liquidityPool.totalStaked - stake.amount,
-        stakerCount: Math.max(0, state.userStakes.length - 1),
-      },
-      userStakes: state.userStakes.filter((s) => s.id !== stakeId),
-    }));
+    try {
+      // 更新Supabase中的质押状态
+      await LiquidityService.unstake(stakeId, stake.totalFeeEarnings + feeEarnings);
 
-    const message = isEarly
-      ? `Unstaked with 20% early withdrawal penalty. Received ${returnAmount.toFixed(2)} MON + ${pendingRewards.toFixed(2)} rewards`
-      : `Unstaked successfully. Received ${returnAmount.toFixed(2)} MON + ${pendingRewards.toFixed(2)} rewards`;
+      // 创建交易记录
+      await TransactionService.createTransaction({
+        user_id: wallet.userId || wallet.address,
+        type: 'liquidity_unstake',
+        amount: returnAmount,
+        status: 'completed',
+      });
 
-    useNotificationStore.getState().addNotification(isEarly ? 'warning' : 'success', message, 'Liquidity Unstaked');
+      if (totalRewards > 0) {
+        await TransactionService.createTransaction({
+          user_id: wallet.userId || wallet.address,
+          type: 'liquidity_reward',
+          amount: totalRewards,
+          status: 'completed',
+        });
+      }
 
-    return {
-      success: true,
-      message,
-    };
+      // 更新流动性池
+      await LiquidityService.updateLiquidityPool({
+        total_staked: get().liquidityPool.totalStaked - stake.amount,
+        staker_count: Math.max(0, userStakes.length - 1),
+      });
+
+      // 更新本地状态
+      set((state) => ({
+        wallet: {
+          ...state.wallet,
+          balance: state.wallet.balance + returnAmount + totalRewards,
+        },
+        liquidityPool: {
+          ...state.liquidityPool,
+          totalStaked: state.liquidityPool.totalStaked - stake.amount,
+          stakerCount: Math.max(0, state.userStakes.length - 1),
+        },
+        userStakes: state.userStakes.filter((s) => s.id !== stakeId),
+      }));
+
+      const message = isEarly
+        ? `Unstaked with 20% early withdrawal penalty. Received ${returnAmount.toFixed(2)} MON + ${totalRewards.toFixed(2)} rewards (${feeEarnings.toFixed(2)} from fees)`
+        : `Unstaked successfully. Received ${returnAmount.toFixed(2)} MON + ${totalRewards.toFixed(2)} rewards (${feeEarnings.toFixed(2)} from fees)`;
+
+      useNotificationStore.getState().addNotification(isEarly ? 'warning' : 'success', message, 'Liquidity Unstaked');
+
+      return { success: true, message };
+    } catch (error) {
+      console.error('[Unstake] Failed:', error);
+      useNotificationStore.getState().addNotification('error', 'Failed to unstake', 'Error');
+      return { success: false, message: 'Failed to unstake' };
+    }
   },
 
   claimLiquidityRewards: () => {
@@ -797,196 +936,6 @@ export const useGameStore = create<GameStore>()(
 
     useNotificationStore.getState().addNotification('success', `Claimed ${totalRewards.toFixed(2)} MON rewards`, 'Rewards Claimed');
     return { success: true, amount: totalRewards, message: `Claimed ${totalRewards.toFixed(2)} MON rewards` };
-  },
-
-  // ==================== 预测市场实现 ====================
-  predictionMarkets: [
-    {
-      id: 'market-1',
-      tournamentId: '1',
-      name: 'Champion Prediction',
-      totalPool: 5000,
-      odds: {},
-      status: 'open',
-      deadline: Date.now() + 86400000,
-      betType: 'final',
-      participants: [],
-    },
-  ],
-  userPredictions: [],
-  autoBetRule: {
-    enabled: false,
-    betAmount: 100,
-    strategy: 'always',
-    maxBetsPerDay: 5,
-  },
-
-  placePredictionBet: (marketId: string, agentId: string, amount: number, betType: 'semifinal' | 'final' | 'match') => {
-    const { wallet, predictionMarkets } = get();
-
-    if (!wallet.connected) {
-      return { success: false, message: 'Please connect wallet first' };
-    }
-
-    if (wallet.balance < amount) {
-      return { success: false, message: 'Insufficient balance' };
-    }
-
-    const market = predictionMarkets.find((m) => m.id === marketId);
-    if (!market || market.status !== 'open') {
-      return { success: false, message: 'Market is not open' };
-    }
-
-    if (Date.now() > market.deadline) {
-      return { success: false, message: 'Market deadline has passed' };
-    }
-
-    if (amount < 10) {
-      return { success: false, message: 'Minimum bet is 10 MON' };
-    }
-
-    // 计算赔率
-    const currentOdds = market.odds[agentId] || 2.0;
-    const potentialWin = amount * currentOdds;
-
-    const newBet: PredictionBet = {
-      id: Math.random().toString(36).substr(2, 9),
-      userId: wallet.address,
-      marketId,
-      tournamentId: market.tournamentId,
-      predictedAgentId: agentId,
-      betAmount: amount,
-      betType,
-      odds: currentOdds,
-      status: 'pending',
-      potentialWin,
-      createdAt: Date.now(),
-    };
-
-    set((state) => ({
-      wallet: { ...state.wallet, balance: state.wallet.balance - amount },
-      predictionMarkets: state.predictionMarkets.map((m) =>
-        m.id === marketId ? { ...m, totalPool: m.totalPool + amount } : m
-      ),
-      userPredictions: [...state.userPredictions, newBet],
-    }));
-
-    // 更新赔率
-    get().updateOdds(marketId);
-
-    useNotificationStore.getState().addNotification('success', `Bet placed successfully. Potential win: ${potentialWin.toFixed(2)} MON`, 'Prediction Bet Placed');
-    return { success: true, message: `Bet placed successfully. Potential win: ${potentialWin.toFixed(2)} MON` };
-  },
-
-  updateOdds: (marketId: string) => {
-    const { predictionMarkets, userPredictions } = get();
-    const market = predictionMarkets.find((m) => m.id === marketId);
-    if (!market) return;
-
-    const marketBets = userPredictions.filter((b) => b.marketId === marketId);
-    const totalPool = marketBets.reduce((sum, b) => sum + b.betAmount, 0);
-
-    // 计算每个选手的下注总额
-    const agentBets: Record<string, number> = {};
-    marketBets.forEach((bet) => {
-      agentBets[bet.predictedAgentId] = (agentBets[bet.predictedAgentId] || 0) + bet.betAmount;
-    });
-
-    // 动态赔率计算
-    const newOdds: Record<string, number> = {};
-    market.participants.forEach((agentId) => {
-      const agentBet = agentBets[agentId] || 0;
-      if (agentBet > 0) {
-        // 赔率 = 总池 / 该选手下注额 * 0.95 (5%平台费)
-        newOdds[agentId] = (totalPool / agentBet) * 0.95;
-      } else {
-        // 无人下注时默认赔率
-        newOdds[agentId] = market.betType === 'final' ? 3.0 : market.betType === 'semifinal' ? 2.0 : 1.8;
-      }
-    });
-
-    set((state) => ({
-      predictionMarkets: state.predictionMarkets.map((m) =>
-        m.id === marketId ? { ...m, odds: newOdds } : m
-      ),
-    }));
-  },
-
-  settlePredictionMarket: (marketId: string, winnerId: string) => {
-    const { userPredictions } = get();
-
-    const updatedPredictions = userPredictions.map((bet) => {
-      if (bet.marketId === marketId) {
-        const won = bet.predictedAgentId === winnerId;
-        return { ...bet, status: (won ? 'won' : 'lost') as 'won' | 'lost' };
-      }
-      return bet;
-    });
-
-    // 发放奖励
-    const winningBets = updatedPredictions.filter(
-      (b) => b.marketId === marketId && b.status === 'won'
-    );
-
-    let totalPayout = 0;
-    winningBets.forEach((bet) => {
-      totalPayout += bet.potentialWin;
-    });
-
-    set((state) => ({
-      userPredictions: updatedPredictions,
-      predictionMarkets: state.predictionMarkets.map((m) =>
-        m.id === marketId ? { ...m, status: 'settled' } : m
-      ),
-    }));
-
-    // 给获胜者发放奖励
-    winningBets.forEach((bet) => {
-      if (bet.userId === get().wallet.address) {
-        set((state) => ({
-          wallet: { ...state.wallet, balance: state.wallet.balance + bet.potentialWin },
-        }));
-      }
-    });
-  },
-
-  setAutoBetRule: (rule: Partial<AutoBetRule>) => {
-    set((state) => ({
-      autoBetRule: { ...state.autoBetRule, ...rule },
-    }));
-  },
-
-  executeAutoBet: () => {
-    const { autoBetRule, predictionMarkets, wallet } = get();
-
-    if (!autoBetRule.enabled || !wallet.connected) return;
-
-    // 获取今日已下注次数
-    const todayBets = get().userPredictions.filter(
-      (b) => b.userId === wallet.address && b.createdAt > Date.now() - 86400000
-    ).length;
-
-    if (todayBets >= autoBetRule.maxBetsPerDay) return;
-
-    // 找到开放的市场
-    const openMarkets = predictionMarkets.filter((m) => m.status === 'open');
-    if (openMarkets.length === 0) return;
-
-    const market = openMarkets[0];
-
-    // 根据策略选择选手
-    let selectedAgentId = '';
-
-    if (autoBetRule.strategy === 'specified' && autoBetRule.specifiedAgentIds?.length) {
-      selectedAgentId = autoBetRule.specifiedAgentIds[0];
-    } else {
-      // 默认选择第一个参与者或随机选择
-      selectedAgentId = market.participants[0] || '';
-    }
-
-    if (selectedAgentId) {
-      get().placePredictionBet(market.id, selectedAgentId, autoBetRule.betAmount, market.betType);
-    }
   },
 
   // ==================== 锦标赛系统实现 ====================
@@ -1267,8 +1216,6 @@ export const useGameStore = create<GameStore>()(
             }
           }
         }
-        // 8进4时创建预测市场
-        get().createPredictionMarketForTournament(tournamentId, 'semifinal');
         break;
       case 'round8':
         nextRound = 'semifinal';
@@ -1290,8 +1237,6 @@ export const useGameStore = create<GameStore>()(
             }
           }
         }
-        // 半决赛时创建冠军预测市场
-        get().createPredictionMarketForTournament(tournamentId, 'final');
         break;
       case 'semifinal':
         nextRound = 'final';
@@ -1539,39 +1484,27 @@ export const useGameStore = create<GameStore>()(
     }, 55000);
   },
 
-  // 为锦标赛创建预测市场
-  createPredictionMarketForTournament: (tournamentId: string, betType: 'semifinal' | 'final') => {
-    const { tournaments } = get();
-    const tournament = tournaments.find((t) => t.id === tournamentId);
-    if (!tournament) return;
-
-    const qualifiedAgents = tournament.qualifiedAgents;
-    if (qualifiedAgents.length === 0) return;
-
-    const market: PredictionMarket = {
-      id: `market-${tournamentId}-${betType}`,
-      tournamentId,
-      name: betType === 'semifinal' ? 'Semifinal Prediction' : 'Champion Prediction',
-      totalPool: 0,
-      odds: {},
-      status: 'open',
-      deadline: Date.now() + 3600000, // 1小时后截止
-      betType,
-      participants: qualifiedAgents.map((a) => a.id),
-    };
-
-    // 初始化赔率
-    qualifiedAgents.forEach((agent) => {
-      market.odds[agent.id] = betType === 'semifinal' ? 2.0 : 3.0;
-    });
-
-    set((state) => ({
-      predictionMarkets: [...state.predictionMarkets, market],
-    }));
-  },
-
   // ==================== 后台自动战斗系统 ====================
   autoBattleInterval: null,
+
+  // ==================== 平台收入 ====================
+  platformRevenue: 0,
+
+  addPlatformRevenue: (amount: number) => {
+    // 将50%手续费分配给流动性池，50%留存为平台收入
+    const lpShare = amount * 0.5;
+    const platformShare = amount * 0.5;
+    
+    set((state) => ({
+      platformRevenue: state.platformRevenue + platformShare,
+      liquidityPool: {
+        ...state.liquidityPool,
+        feeRevenuePool: state.liquidityPool.feeRevenuePool + lpShare,
+        totalFeeDistributed: state.liquidityPool.totalFeeDistributed + lpShare,
+      },
+    }));
+    console.log(`[Platform Revenue] Added ${amount.toFixed(2)} MON (LP: ${lpShare.toFixed(2)}, Platform: ${platformShare.toFixed(2)}), Total Platform: ${(get().platformRevenue + platformShare).toFixed(2)} MON`);
+  },
 
   startAutoBattleSystem: () => {
     const state = get();
@@ -1689,6 +1622,22 @@ export const useGameStore = create<GameStore>()(
       ? battleAgents.sort((a, b) => b.balance - a.balance)[0]
       : null;
 
+    // 计算并从赢家盈利中抽取2%平台手续费（在更新统计前执行）
+    let platformFee = 0;
+    let netLoot = 0;
+    if (winner) {
+      const winnerInitialBalance = initialBalances.get(winner.id) || 0;
+      const winnerFinalBalance = winner.balance;
+      const totalLoot = winnerFinalBalance - winnerInitialBalance;
+
+      if (totalLoot > 0) {
+        platformFee = Math.floor(totalLoot * 0.02); // 2%手续费
+        winner.balance -= platformFee;
+        netLoot = totalLoot - platformFee;
+        get().addPlatformRevenue(platformFee);
+      }
+    }
+
     // 更新所有参与者的战斗统计到store
     selectedAgents.forEach(originalAgent => {
       const battleAgent = battleAgents.find(a => a.id === originalAgent.id) ||
@@ -1756,20 +1705,16 @@ export const useGameStore = create<GameStore>()(
       }));
     });
 
-    // 添加战斗日志 - 计算胜者实际掠夺的金额
+    // 添加战斗日志
     if (winner) {
-      const winnerInitialBalance = initialBalances.get(winner.id) || 0;
-      const winnerFinalBalance = winner.balance;
-      const totalLoot = winnerFinalBalance - winnerInitialBalance;
-
       const log: BattleLog = {
         id: `autobattle-${Date.now()}`,
         timestamp: Date.now(),
         type: 'eliminate',
         attacker: winner,
         defender: selectedAgents.find(p => p.id !== winner.id) || selectedAgents[0],
-        message: totalLoot > 0
-          ? `[AutoBattle] ${winner.name} 赢得了战斗！掠夺 ${Math.floor(totalLoot)} $MON`
+        message: netLoot > 0
+          ? `[AutoBattle] ${winner.name} 赢得了战斗！掠夺 ${Math.floor(netLoot)} $MON${platformFee > 0 ? ` (手续费 ${platformFee} MON)` : ''}`
           : `[AutoBattle] ${winner.name} 赢得了战斗！`,
         isHighlight: true,
       };
